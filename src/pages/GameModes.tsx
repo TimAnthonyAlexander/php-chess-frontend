@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { modeService, queueService } from '../services/api';
 import type { TimeControl, QueueStatus } from '../types';
+import { Typography, Container, Paper, Grid, Card, CardContent, CardActionArea, CircularProgress, Button, Box, Alert, Divider } from '@mui/material';
 
 const GameModes = () => {
     const [timeControls, setTimeControls] = useState<TimeControl[]>([]);
@@ -11,7 +12,7 @@ const GameModes = () => {
     const [isJoiningQueue, setIsJoiningQueue] = useState(false);
     const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
     const [queueTime, setQueueTime] = useState(0);
-    const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+    const [pollingInterval, setPollingInterval] = useState<ReturnType<typeof setInterval> | null>(null);
 
     const navigate = useNavigate();
 
@@ -134,103 +135,218 @@ const GameModes = () => {
     }, {});
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Play Chess</h1>
+        <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+            <Typography
+                variant="h3"
+                component="h1"
+                gutterBottom
+                sx={{
+                    fontWeight: 600,
+                    letterSpacing: '-0.01em',
+                    color: 'text.primary',
+                    mb: 3
+                }}
+            >
+                Play Chess
+            </Typography>
 
             {isJoiningQueue ? (
-                <div className="card text-center py-8">
-                    <div className="flex flex-col items-center">
-                        <div className="text-2xl font-semibold mb-4">Finding opponent...</div>
-                        <div className="text-4xl font-bold mb-6">{formatQueueTime(queueTime)}</div>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 5,
+                        textAlign: 'center',
+                        borderRadius: 3,
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.04)'
+                    }}>
+                    <Box display="flex" flexDirection="column" alignItems="center">
+                        <Typography variant="h5" sx={{ mb: 2 }}>Finding opponent...</Typography>
+                        <Typography variant="h3" sx={{ mb: 3, fontWeight: 'bold' }}>{formatQueueTime(queueTime)}</Typography>
 
                         {queueStatus?.widening && (
-                            <div className="text-sm text-gray-600 mb-4">
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                 Search range: ±{queueStatus.widening.delta} Elo
-                            </div>
+                            </Typography>
                         )}
 
-                        <div className="animate-pulse mb-8">
-                            <div className="flex space-x-2">
-                                <div className="h-3 w-3 bg-primary rounded-full"></div>
-                                <div className="h-3 w-3 bg-primary rounded-full"></div>
-                                <div className="h-3 w-3 bg-primary rounded-full"></div>
-                            </div>
-                        </div>
+                        <Box sx={{ mb: 4, display: 'flex' }}>
+                            <Box sx={{
+                                animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                                '@keyframes pulse': {
+                                    '0%, 100%': { opacity: 1 },
+                                    '50%': { opacity: 0.5 }
+                                },
+                                display: 'flex',
+                                gap: 1
+                            }}>
+                                <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
+                                <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
+                                <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
+                            </Box>
+                        </Box>
 
-                        <button onClick={handleLeaveQueue} className="btn bg-red-100 text-red-700 hover:bg-red-200">
+                        <Button
+                            onClick={handleLeaveQueue}
+                            variant="outlined"
+                            color="error"
+                            size="large"
+                            sx={{
+                                px: 4,
+                                py: 1.25,
+                                borderRadius: 28,
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                borderWidth: 1.5,
+                                letterSpacing: '0.01em',
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                    borderWidth: 1.5,
+                                    backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                                }
+                            }}
+                        >
                             Cancel Search
-                        </button>
-                    </div>
-                </div>
+                        </Button>
+                    </Box>
+                </Paper>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Grid container spacing={3}>
                     {Object.entries(groupedTimeControls).map(([timeClass, controls]) => (
-                        <div key={timeClass} className="card">
-                            <h2 className="text-xl font-semibold mb-4 capitalize">{timeClass}</h2>
+                        <Grid item xs={12} md={6} key={timeClass}>
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 3,
+                                    borderRadius: 3,
+                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                    backdropFilter: 'blur(10px)',
+                                    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.04)'
+                                }}>
+                                <Typography variant="h5" sx={{ mb: 2, textTransform: 'capitalize' }}>
+                                    {timeClass}
+                                </Typography>
+                                <Divider sx={{ mb: 2 }} />
 
-                            <div className="space-y-4">
-                                {controls.map((tc) => (
-                                    <div
-                                        key={tc.id}
-                                        onClick={() => setSelectedMode(tc.slug)}
-                                        className={`p-4 rounded-lg border-2 transition-colors cursor-pointer ${selectedMode === tc.slug
-                                            ? 'border-primary bg-primary bg-opacity-5'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <div className="font-medium text-lg">{tc.name}</div>
-                                                <div className="text-sm text-gray-600">
-                                                    {Math.floor(tc.initial_sec / 60)}min {tc.initial_sec % 60}s + {tc.increment_ms / 1000}s
-                                                </div>
-                                            </div>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    {controls.map((tc) => (
+                                        <Card
+                                            key={tc.id}
+                                            elevation={selectedMode === tc.slug ? 2 : 0}
+                                            sx={{
+                                                border: 0,
+                                                borderRadius: 2,
+                                                bgcolor: selectedMode === tc.slug ? 'rgba(25, 118, 210, 0.04)' : 'background.paper',
+                                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                position: 'relative',
+                                                overflow: 'hidden',
+                                                '&:hover': {
+                                                    bgcolor: selectedMode === tc.slug
+                                                        ? 'rgba(25, 118, 210, 0.08)'
+                                                        : 'rgba(0, 0, 0, 0.02)'
+                                                },
+                                                '&:before': selectedMode === tc.slug ? {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    width: '4px',
+                                                    height: '100%',
+                                                    bgcolor: 'primary.main',
+                                                    borderTopLeftRadius: 4,
+                                                    borderBottomLeftRadius: 4,
+                                                } : {}
+                                            }}
+                                        >
+                                            <CardActionArea onClick={() => setSelectedMode(tc.slug)}>
+                                                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Box>
+                                                        <Typography variant="h6">{tc.name}</Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {Math.floor(tc.initial_sec / 60)}min {tc.initial_sec % 60}s + {tc.increment_ms / 1000}s
+                                                        </Typography>
+                                                    </Box>
 
-                                            {selectedMode === tc.slug && (
-                                                <div className="h-4 w-4 rounded-full bg-primary"></div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                                                    {selectedMode === tc.slug && (
+                                                        <Box sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 0.75
+                                                        }}>
+                                                            <Box sx={{
+                                                                width: 6,
+                                                                height: 6,
+                                                                borderRadius: '50%',
+                                                                bgcolor: 'primary.main',
+                                                                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)',
+                                                                transition: 'all 0.2s ease-in-out',
+                                                            }} />
+                                                        </Box>
+                                                    )}
+                                                </CardContent>
+                                            </CardActionArea>
+                                        </Card>
+                                    ))}
+                                </Box>
+                            </Paper>
+                        </Grid>
                     ))}
 
                     {/* Placeholder if no time controls are loaded or available */}
                     {Object.keys(groupedTimeControls).length === 0 && !isLoading && (
-                        <div className="col-span-2 text-center py-8 text-gray-500">
-                            No game modes available
-                        </div>
+                        <Grid item xs={12}>
+                            <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ py: 4 }}>
+                                No game modes available
+                            </Typography>
+                        </Grid>
                     )}
 
                     {/* Loading state */}
                     {isLoading && (
-                        <div className="col-span-2 flex justify-center py-8">
-                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                        </div>
+                        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <CircularProgress size={48} />
+                        </Grid>
                     )}
-                </div>
+                </Grid>
             )}
 
             {/* Play button */}
             {!isJoiningQueue && !isLoading && selectedMode && (
-                <div className="mt-8 text-center">
-                    <button
+                <Box sx={{ mt: 4, textAlign: 'center' }}>
+                    <Button
                         onClick={handleJoinQueue}
-                        className="btn btn-primary text-lg py-3 px-12"
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        sx={{
+                            px: 5,
+                            py: 1.5,
+                            fontSize: '1.1rem',
+                            borderRadius: 28,
+                            textTransform: 'none',
+                            fontWeight: 500,
+                            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                            letterSpacing: '0.01em',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                                boxShadow: '0 6px 16px rgba(25, 118, 210, 0.4)',
+                                transform: 'translateY(-1px)'
+                            }
+                        }}
                     >
                         Find Game
-                    </button>
-                </div>
+                    </Button>
+                </Box>
             )}
 
             {/* Error message */}
             {error && (
-                <div className="mt-6 p-4 bg-red-100 text-red-700 rounded-lg text-center">
+                <Alert severity="error" sx={{ mt: 3 }}>
                     {error}
-                </div>
+                </Alert>
             )}
-        </div>
+        </Container>
     );
 };
 

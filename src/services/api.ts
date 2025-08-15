@@ -60,12 +60,12 @@ export const modeService = {
 // Matchmaking Services
 export const queueService = {
     joinQueue: async (timeControlSlug: string): Promise<QueueStatus> => {
-        const response = await api.post<QueueStatus>(`/queue/join/${timeControlSlug}`);
+        const response = await api.post<QueueStatus>('/queue/join', { tc: timeControlSlug });
         return response.data;
     },
 
     leaveQueue: async (timeControlSlug: string): Promise<void> => {
-        await api.delete(`/queue/leave/${timeControlSlug}`);
+        await api.post('/queue/leave', { tc: timeControlSlug });
     }
 };
 

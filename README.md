@@ -1,69 +1,84 @@
-# React + TypeScript + Vite
+# Chess Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive chess application built with React, TypeScript, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Authentication System**: User registration and login
+- **Home Dashboard**: Display user profile, recent games, and leaderboards
+- **Game Mode Selection**: Various time controls (bullet, blitz, rapid)
+- **Interactive Chessboard**: Play games with real-time updates
+- **Game History**: Review past games
+- **Profile Page**: View ratings across different time classes
+- **Responsive Design**: Works on desktop and mobile devices
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React 18 with TypeScript
+- React Router for routing
+- Tailwind CSS for styling
+- Axios for API communication
+- chess.js and react-chessboard for the chess logic and board display
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js (v16 or later)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd chess-frontend
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install dependencies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+# or
+yarn
 ```
+
+3. Configure the API endpoint
+
+Edit `src/services/api.ts` and update the baseURL to point to your API server if needed.
+
+4. Start the development server
+
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+5. Open your browser and navigate to `http://localhost:5173`
+
+## API Integration
+
+The frontend communicates with the backend through RESTful API endpoints:
+
+- Authentication: `/api/register`, `/api/login`
+- Game Modes: `/api/modes`
+- Matchmaking: `/api/queue/join/{tc}`, `/api/queue/leave/{tc}`
+- Gameplay: `/api/games/{id}`, `/api/games/{id}/sync`, `/api/games/{id}/move`
+- User Data: `/api/me/active-game`, `/api/me/recent-games`, `/api/me/ratings`
+- Leaderboards: `/api/leaderboard`
+
+## Building for Production
+
+```bash
+npm run build
+# or
+yarn build
+```
+
+This will generate optimized production files in the `dist` directory, which can be deployed to any static hosting service.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

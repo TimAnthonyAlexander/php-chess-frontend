@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { userService } from '../services/api';
 import type { Game } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 const GameHistory = () => {
     const [games, setGames] = useState<Game[]>([]);
@@ -65,8 +65,8 @@ const GameHistory = () => {
                 <button
                     onClick={() => setSelectedTimeClass(null)}
                     className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === null
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     All
@@ -74,8 +74,8 @@ const GameHistory = () => {
                 <button
                     onClick={() => setSelectedTimeClass('bullet')}
                     className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === 'bullet'
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Bullet
@@ -83,8 +83,8 @@ const GameHistory = () => {
                 <button
                     onClick={() => setSelectedTimeClass('blitz')}
                     className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === 'blitz'
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Blitz
@@ -92,8 +92,8 @@ const GameHistory = () => {
                 <button
                     onClick={() => setSelectedTimeClass('rapid')}
                     className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === 'rapid'
-                            ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                 >
                     Rapid

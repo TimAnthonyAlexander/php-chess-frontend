@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userService } from '../services/api';
 import type { PlayerRating } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 const Profile = () => {
     const [ratings, setRatings] = useState<PlayerRating[]>([]);

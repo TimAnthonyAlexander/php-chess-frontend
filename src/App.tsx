@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './providers/AuthProvider';
 import './App.css';
 
 // Lazy load components for better performance

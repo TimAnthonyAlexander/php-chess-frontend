@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { userService, leaderboardService } from '../services/api';
 import type { Game, PlayerRating } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import {
     Box,
     Button,

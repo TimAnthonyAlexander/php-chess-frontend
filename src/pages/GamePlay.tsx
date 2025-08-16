@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { gameService } from '../services/api';
-import type { Game, GameMove } from '../types';
+import type { Game, GameMove, ApiError } from '../types';
 import ChessBoard from '../components/Chess/ChessBoard';
 import ChessTimer from '../components/Chess/ChessTimer';
 import MoveList from '../components/Chess/MoveList';
@@ -10,7 +10,7 @@ import GameControls from '../components/Chess/GameControls';
 import {
     Container,
     Box,
-    Grid,
+    GridLegacy as Grid,
     Typography,
     Button,
     Paper,
@@ -39,9 +39,10 @@ const GamePlay = () => {
                 setGame(response.game);
                 setMoves(response.moves);
                 setLockVersion(response.game.lock_version);
-            } catch (err: any) {
-                setError(err.response?.data?.message || 'Failed to load game');
-                console.error('Error loading game:', err);
+            } catch (err: unknown) {
+                const error = err as ApiError;
+                setError(error.message || 'Failed to load game');
+                console.error('Error loading game:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -64,7 +65,7 @@ const GamePlay = () => {
 
                 return {
                     ...prev,
-                    status: response.status,
+                    status: response.status as 'active' | 'finished',
                     result: response.result,
                     reason: response.reason,
                     lock_version: response.lock_version,
@@ -111,12 +112,13 @@ const GamePlay = () => {
                 setLockVersion(response.lock_version);
                 await syncGame();
             }
-        } catch (err: any) {
-            if (err.response?.status === 409) {
+        } catch (err: unknown) {
+            const error = err as Error;
+            if ((err as any).response?.status === 409) {
                 // Handle version conflict or game not active
                 await syncGame();
             } else {
-                console.error('Error making move:', err);
+                console.error('Error making move:', error);
             }
         }
     };

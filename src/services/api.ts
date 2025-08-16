@@ -7,6 +7,7 @@ import type {
     PlayerRating,
     QueueStatus,
     TimeControl,
+    User,
 } from '../types';
 
 // Create axios instance with base URL and default headers
@@ -46,6 +47,11 @@ export const authService = {
 
     isAuthenticated: (): boolean => {
         return localStorage.getItem('chess_token') !== null;
+    },
+    
+    getCurrentUser: async (): Promise<User> => {
+        const response = await api.get<{ user: User }>('/me');
+        return response.data.user;
     }
 };
 

@@ -13,8 +13,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     useEffect(() => {
         const token = localStorage.getItem('chess_token');
         if (!token) { setIsLoading(false); return; }
-        setIsAuthenticated(true);
-        setIsLoading(false);
+        
+        const fetchUser = async () => {
+            try {
+                const userData = await authService.getCurrentUser();
+                setUser(userData);
+                setIsAuthenticated(true);
+            } catch (error) {
+                // Token might be invalid
+                localStorage.removeItem('chess_token');
+                setIsAuthenticated(false);
+                console.error('Failed to fetch user data:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        fetchUser();
     }, []);
 
     const login = async (email: string, password: string) => {

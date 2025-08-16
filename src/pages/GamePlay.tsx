@@ -99,6 +99,7 @@ const GamePlay = () => {
 
     // Make a move
     const handleMove = async (uci: string, lockVersion: number) => {
+        console.log('Making move:', uci, 'with lock version:', lockVersion);
         if (!game || !user) return;
 
         try {

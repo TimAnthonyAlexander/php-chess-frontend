@@ -1,4 +1,17 @@
+import { useMemo } from 'react';
 import type { GameMove } from '../../types';
+import {
+    Box,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography,
+    useTheme,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 interface MoveListProps {
     moves: GameMove[];
@@ -6,71 +19,130 @@ interface MoveListProps {
     onSelectMove?: (index: number) => void;
 }
 
-const MoveList: React.FC<MoveListProps> = ({
-    moves,
-    currentMoveIndex,
-    onSelectMove
-}) => {
+function MoveList({ moves, currentMoveIndex, onSelectMove }: MoveListProps) {
+    const theme = useTheme();
     const isInteractive = !!onSelectMove;
 
-    // Group moves into pairs for display
-    const movePairs: Array<{ index: number; white?: GameMove; black?: GameMove }> = [];
-    for (let i = 0; i < moves.length; i += 2) {
-        const whiteMove = moves[i];
-        const blackMove = i + 1 < moves.length ? moves[i + 1] : undefined;
-
-        const moveNumber = Math.floor(i / 2) + 1;
-        movePairs.push({
-            index: moveNumber,
-            white: whiteMove,
-            black: blackMove
-        });
-    }
+    const movePairs = useMemo(
+        () =>
+            Array.from({ length: Math.ceil(moves.length / 2) }, (_, i) => ({
+                index: i + 1,
+                white: moves[i * 2],
+                black: moves[i * 2 + 1],
+            })),
+        [moves]
+    );
 
     return (
-        <div className="rounded-lg border border-gray-200 overflow-hidden">
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                <h3 className="font-medium">Moves</h3>
-            </div>
+        <Box
+            sx={{
+                borderRadius: 3,
+                overflow: 'hidden',
+                border: `1px solid ${theme.palette.divider}`,
+                background: theme.palette.mode === 'dark'
+                    ? alpha('#121212', 0.6)
+                    : alpha('#ffffff', 0.7),
+                backdropFilter: 'saturate(180%) blur(16px)',
+            }}
+        >
 
-            <div className="p-2 max-h-[400px] overflow-y-auto">
-                <table className="w-full">
-                    <thead>
-                        <tr>
-                            <th className="px-2 py-1 text-xs font-medium text-gray-500 text-left">#</th>
-                            <th className="px-2 py-1 text-xs font-medium text-gray-500 text-left">White</th>
-                            <th className="px-2 py-1 text-xs font-medium text-gray-500 text-left">Black</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {movePairs.map((pair) => (
-                            <tr key={pair.index} className="hover:bg-gray-50">
-                                <td className="px-2 py-1 text-sm text-gray-500">{pair.index}.</td>
-                                <td
-                                    className={`px-2 py-1 text-sm ${isInteractive ? 'cursor-pointer hover:text-primary' : ''
-                                        } ${pair.white && currentMoveIndex === pair.white.ply ? 'font-bold text-primary' : ''}`}
-                                    onClick={() => pair.white && onSelectMove && onSelectMove(pair.white.ply)}
-                                >
-                                    {pair.white?.san || ''}
-                                </td>
-                                <td
-                                    className={`px-2 py-1 text-sm ${isInteractive ? 'cursor-pointer hover:text-primary' : ''
-                                        } ${pair.black && currentMoveIndex === pair.black.ply ? 'font-bold text-primary' : ''}`}
-                                    onClick={() => pair.black && onSelectMove && onSelectMove(pair.black.ply)}
-                                >
-                                    {pair.black?.san || ''}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <TableContainer
+                sx={{
+                    maxHeight: 400,
+                    '&::-webkit-scrollbar': { height: 8, width: 8 },
+                    '&::-webkit-scrollbar-thumb': {
+                        borderRadius: 8,
+                        backgroundColor: alpha(theme.palette.text.primary, 0.2),
+                    },
+                }}
+            >
+                <Table stickyHeader size="small" aria-label="move list">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>#</TableCell>
+                            <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>White</TableCell>
+                            <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>Black</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {movePairs.map((pair, rowIdx) => {
+                            const rowBg =
+                                rowIdx % 2 === 0
+                                    ? 'transparent'
+                                    : theme.palette.mode === 'dark'
+                                        ? alpha('#ffffff', 0.03)
+                                        : alpha('#000000', 0.02);
 
-                {moves.length === 0 && (
-                    <div className="text-center py-4 text-gray-500">No moves yet</div>
-                )}
-            </div>
-        </div>
+                            const cellBase = {
+                                fontSize: 14,
+                                py: 1,
+                            } as const;
+
+                            const whiteActive = pair.white && currentMoveIndex === pair.white.ply;
+                            const blackActive = pair.black && currentMoveIndex === pair.black.ply;
+
+                            return (
+                                <TableRow
+                                    key={pair.index}
+                                    hover
+                                    sx={{
+                                        backgroundColor: rowBg,
+                                        '&:hover': {
+                                            backgroundColor:
+                                                theme.palette.mode === 'dark'
+                                                    ? alpha(theme.palette.primary.main, 0.07)
+                                                    : alpha(theme.palette.primary.main, 0.05),
+                                        },
+                                        transition: 'background-color 120ms ease',
+                                    }}
+                                >
+                                    <TableCell sx={{ ...cellBase, color: 'text.secondary', width: 48 }}>
+                                        {pair.index}.
+                                    </TableCell>
+
+                                    <TableCell
+                                        onClick={() => pair.white && onSelectMove?.(pair.white.ply)}
+                                        sx={{
+                                            ...cellBase,
+                                            fontWeight: whiteActive ? 700 : 500,
+                                            color: whiteActive ? 'primary.main' : 'text.primary',
+                                            cursor: pair.white && isInteractive ? 'pointer' : 'default',
+                                            userSelect: 'none',
+                                        }}
+                                    >
+                                        {pair.white?.san || ''}
+                                    </TableCell>
+
+                                    <TableCell
+                                        onClick={() => pair.black && onSelectMove?.(pair.black.ply)}
+                                        sx={{
+                                            ...cellBase,
+                                            fontWeight: blackActive ? 700 : 500,
+                                            color: blackActive ? 'primary.main' : 'text.primary',
+                                            cursor: pair.black && isInteractive ? 'pointer' : 'default',
+                                            userSelect: 'none',
+                                        }}
+                                    >
+                                        {pair.black?.san || ''}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+
+                        {moves.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        No moves yet
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
     );
-};
+}
 
 export default MoveList;

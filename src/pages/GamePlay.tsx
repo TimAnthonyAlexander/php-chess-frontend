@@ -10,20 +10,60 @@ import GameControls from '../components/Chess/GameControls';
 import {
     Container,
     Box,
-    GridLegacy as Grid,
+    Grid,
     Typography,
     Button,
     Paper,
     CircularProgress,
     Alert,
+    useTheme,
+    alpha,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { ArrowBack } from '@mui/icons-material';
+
+const SurfaceCard = styled(Box)(({ theme }) => ({
+    backgroundColor: alpha(theme.palette.background.paper, 0.7),
+    borderRadius: 12,
+    padding: theme.spacing(2.5),
+    border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+    backdropFilter: 'blur(10px)',
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+        backgroundColor: alpha(theme.palette.background.paper, 0.85),
+    }
+}));
+
+const StatusLabel = styled(Typography)(({ theme }) => ({
+    fontSize: '0.875rem',
+    color: theme.palette.text.secondary,
+    marginBottom: theme.spacing(0.5),
+    letterSpacing: '0.02em',
+}));
+
+const ValueLabel = styled(Typography)(({ theme }) => ({
+    fontWeight: 600,
+    fontSize: '1.1rem',
+}));
+
+const BackButton = styled(Button)(({ theme }) => ({
+    textTransform: 'none',
+    color: theme.palette.primary.main,
+    padding: theme.spacing(1, 1),
+    transition: 'all 0.2s ease',
+    '&:hover': {
+        backgroundColor: 'transparent',
+        color: theme.palette.primary.dark,
+        transform: 'translateX(-4px)',
+    }
+}));
 
 const GamePlay = () => {
     const { id } = useParams<{ id: string }>();
     const gameId = parseInt(id || '0');
     const navigate = useNavigate();
     const { user } = useAuth();
+    const theme = useTheme();
 
     const [game, setGame] = useState<Game | null>(null);
     const [moves, setMoves] = useState<GameMove[]>([]);
@@ -164,21 +204,60 @@ const GamePlay = () => {
     if (isLoading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <CircularProgress />
+                <CircularProgress
+                    size={60}
+                    sx={{ color: theme => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.light})` }}
+                />
             </Box>
         );
     }
 
     if (error || !game || !user) {
         return (
-            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
-                <Typography variant="h5" color="error" gutterBottom fontWeight="bold">
+            <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                height="100vh"
+                sx={{
+                    position: 'relative',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        width: '500px',
+                        height: '500px',
+                        borderRadius: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        background: `radial-gradient(circle, ${alpha(theme.palette.error.light, 0.06)}, transparent 70%)`,
+                        zIndex: -1,
+                    }
+                }}
+            >
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: theme.palette.error.main }}>
                     Error
                 </Typography>
-                <Typography variant="body1" sx={{ mb: 3 }}>
+                <Typography variant="body1" sx={{ mb: 4, textAlign: 'center', maxWidth: 400 }}>
                     {error || 'Game not found'}
                 </Typography>
-                <Button variant="contained" color="primary" onClick={() => navigate('/')}>
+                <Button
+                    variant="outlined"
+                    onClick={() => navigate('/')}
+                    sx={{
+                        borderColor: theme.palette.primary.main,
+                        color: theme.palette.primary.main,
+                        px: 4,
+                        py: 1,
+                        borderRadius: 2,
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                            borderColor: theme.palette.primary.dark,
+                            backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                        }
+                    }}
+                >
                     Return Home
                 </Button>
             </Box>
@@ -216,48 +295,56 @@ const GamePlay = () => {
     };
 
     return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Button
+        <Container maxWidth="lg" sx={{ py: 5 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+                <BackButton
                     startIcon={<ArrowBack />}
                     onClick={() => navigate('/')}
-                    color="primary"
-                    sx={{
-                        textTransform: 'none',
-                        '&:hover': {
-                            backgroundColor: 'transparent',
-                            textDecoration: 'underline'
-                        }
-                    }}
                 >
                     Back to Home
-                </Button>
+                </BackButton>
 
                 <Box textAlign="right">
-                    <Typography variant="caption" color="text.secondary">
+                    <StatusLabel>
                         Time Control
-                    </Typography>
-                    <Typography variant="body1" fontWeight={500}>
+                    </StatusLabel>
+                    <ValueLabel>
                         {game.timeControl?.name || 'Standard'}
-                    </Typography>
+                    </ValueLabel>
                 </Box>
             </Box>
 
             {/* Game status banner */}
             {game.status === 'finished' && (
-                <Alert
-                    severity={getStatusAlertColor()}
+                <Box
                     sx={{
-                        mb: 3,
+                        mb: 4,
+                        py: 2,
+                        px: 3,
+                        display: 'flex',
                         justifyContent: 'center',
-                        borderRadius: 2,
-                        '& .MuiAlert-message': {
-                            fontWeight: 'bold'
-                        }
+                        alignItems: 'center',
+                        borderRadius: 3,
+                        backgroundColor: theme => {
+                            if (getStatusAlertColor() === 'success') {
+                                return alpha(theme.palette.success.main, 0.08);
+                            } else if (getStatusAlertColor() === 'error') {
+                                return alpha(theme.palette.error.main, 0.08);
+                            }
+                            return alpha(theme.palette.info.main, 0.08);
+                        },
+                        border: theme => `1px solid ${alpha(theme.palette[getStatusAlertColor()].main, 0.2)}`,
                     }}
                 >
-                    {getGameStatus()}
-                </Alert>
+                    <Typography
+                        sx={{
+                            fontWeight: 600,
+                            color: theme => theme.palette[getStatusAlertColor()].main
+                        }}
+                    >
+                        {getGameStatus()}
+                    </Typography>
+                </Box>
             )}
 
             <Grid container spacing={4}>
@@ -265,29 +352,29 @@ const GamePlay = () => {
                 <Grid item xs={12} lg={3}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         {/* Player info */}
-                        <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-                            <Box mb={2} pb={1} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
-                                <Typography variant="caption" color="text.secondary">
+                        <SurfaceCard>
+                            <Box mb={2} pb={1.5} sx={{ borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}>
+                                <StatusLabel>
                                     Playing as
-                                </Typography>
-                                <Typography variant="body1" fontWeight={600} fontSize="1.1rem">
+                                </StatusLabel>
+                                <ValueLabel>
                                     {playerColor}
-                                </Typography>
+                                </ValueLabel>
                             </Box>
 
                             <Box>
-                                <Typography variant="caption" color="text.secondary">
+                                <StatusLabel>
                                     Opponent
-                                </Typography>
-                                <Typography variant="body1" fontWeight={600} fontSize="1.1rem">
+                                </StatusLabel>
+                                <ValueLabel>
                                     {opponent?.name || 'Unknown'}
-                                </Typography>
+                                </ValueLabel>
                             </Box>
-                        </Paper>
+                        </SurfaceCard>
 
                         {/* Chess timer */}
-                        <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-                            <Typography variant="body1" fontWeight={500} mb={2}>
+                        <SurfaceCard>
+                            <Typography variant="body1" sx={{ fontWeight: 600, mb: 2 }}>
                                 Time Remaining
                             </Typography>
                             <ChessTimer
@@ -296,17 +383,24 @@ const GamePlay = () => {
                                 lastMoveAt={game.last_move_at}
                                 isActive={game.status === 'active'}
                             />
-                        </Paper>
+                        </SurfaceCard>
 
                         {/* Move list - desktop */}
                         <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
-                            <MoveList moves={moves} />
+                            <SurfaceCard sx={{ p: 0, overflow: 'hidden' }}>
+                                <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}>
+                                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                        Move History
+                                    </Typography>
+                                </Box>
+                                <MoveList moves={moves} />
+                            </SurfaceCard>
                         </Box>
 
                         {/* Game controls */}
                         {game.status === 'active' && (
-                            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
-                                <Typography variant="body1" fontWeight={500} mb={2}>
+                            <SurfaceCard>
+                                <Typography variant="body1" sx={{ fontWeight: 600, mb: 2 }}>
                                     Game Controls
                                 </Typography>
                                 <GameControls
@@ -316,24 +410,60 @@ const GamePlay = () => {
                                     onOfferDraw={handleOfferDraw}
                                     onAcceptDraw={handleAcceptDraw}
                                 />
-                            </Paper>
+                            </SurfaceCard>
                         )}
                     </Box>
                 </Grid>
 
                 {/* Center column - chessboard */}
                 <Grid item xs={12} lg={9}>
-                    <Box display="flex" flexDirection="column" alignItems="center">
-                        <ChessBoard
-                            game={game}
-                            moves={moves}
-                            playerId={user.id}
-                            onMove={handleMove}
-                        />
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            position: 'relative',
+                            '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                width: '100%',
+                                height: '50%',
+                                background: `linear-gradient(180deg, ${alpha(theme.palette.primary.main, 0.03)}, transparent)`,
+                                borderRadius: '50%',
+                                top: '10%',
+                                left: 0,
+                                zIndex: -1,
+                            }
+                        }}
+                    >
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 0.5,
+                                borderRadius: 2,
+                                overflow: 'hidden',
+                                backgroundColor: 'transparent',
+                                border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                            }}
+                        >
+                            <ChessBoard
+                                game={game}
+                                moves={moves}
+                                playerId={user.id}
+                                onMove={handleMove}
+                            />
+                        </Paper>
 
                         {/* Mobile view - move list */}
-                        <Box mt={3} width="100%" sx={{ display: { xs: 'block', lg: 'none' } }}>
-                            <MoveList moves={moves} />
+                        <Box mt={4} width="100%" sx={{ display: { xs: 'block', lg: 'none' } }}>
+                            <SurfaceCard sx={{ p: 0, overflow: 'hidden' }}>
+                                <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}>
+                                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                        Move History
+                                    </Typography>
+                                </Box>
+                                <MoveList moves={moves} />
+                            </SurfaceCard>
                         </Box>
                     </Box>
                 </Grid>

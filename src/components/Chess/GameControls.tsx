@@ -1,5 +1,11 @@
 import { useState } from 'react';
 import type { Game } from '../../types';
+import { Box, Paper, Stack, Button, Tooltip, useTheme } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import FlagRounded from '@mui/icons-material/FlagRounded';
+import HandshakeRounded from '@mui/icons-material/HandshakeRounded';
+import CheckRounded from '@mui/icons-material/CheckRounded';
+import CloseRounded from '@mui/icons-material/CloseRounded';
 
 interface GameControlsProps {
     game: Game;
@@ -9,13 +15,13 @@ interface GameControlsProps {
     onAcceptDraw: () => Promise<void>;
 }
 
-const GameControls: React.FC<GameControlsProps> = ({
+function GameControls({
     game,
     playerId,
     onResign,
     onOfferDraw,
     onAcceptDraw,
-}) => {
+}: GameControlsProps) {
     const [isResignConfirm, setIsResignConfirm] = useState(false);
     const [isDrawOfferPending, setIsDrawOfferPending] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -23,12 +29,13 @@ const GameControls: React.FC<GameControlsProps> = ({
     const isPlayerInGame = playerId === game.white_id || playerId === game.black_id;
     const isGameActive = game.status === 'active';
 
+    const theme = useTheme();
+
     const handleResign = async () => {
         if (!isResignConfirm) {
             setIsResignConfirm(true);
             return;
         }
-
         setIsProcessing(true);
         try {
             await onResign();
@@ -58,60 +65,109 @@ const GameControls: React.FC<GameControlsProps> = ({
         }
     };
 
-    if (!isPlayerInGame || !isGameActive) {
-        return null;
-    }
+    if (!isPlayerInGame || !isGameActive) return null;
 
     return (
-        <div className="flex flex-wrap gap-3 mt-4">
-            {isResignConfirm ? (
-                <>
-                    <button
-                        onClick={handleResign}
-                        disabled={isProcessing}
-                        className="btn bg-red-600 text-white hover:bg-red-700 flex-1"
-                    >
-                        {isProcessing ? 'Resigning...' : 'Confirm Resignation'}
-                    </button>
-                    <button
-                        onClick={() => setIsResignConfirm(false)}
-                        disabled={isProcessing}
-                        className="btn bg-gray-200 text-gray-700 hover:bg-gray-300 flex-1"
-                    >
-                        Cancel
-                    </button>
-                </>
-            ) : (
-                <>
-                    <button
-                        onClick={handleResign}
-                        disabled={isProcessing}
-                        className="btn bg-red-100 text-red-700 hover:bg-red-200 flex-1"
-                    >
-                        Resign
-                    </button>
+        <Box sx={{ mt: 2 }}>
+            <Paper
+                elevation={0}
+                sx={{
+                    p: 1.5,
+                    borderRadius: 3,
+                    backdropFilter: 'saturate(180%) blur(16px)',
+                    backgroundColor: theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.04)'
+                        : 'rgba(255,255,255,0.7)',
+                    border: `1px solid ${theme.palette.divider}`,
+                }}
+            >
+                {isResignConfirm ? (
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                        <LoadingButton
+                            onClick={handleResign}
+                            loading={isProcessing}
+                            variant="contained"
+                            color="error"
+                            fullWidth
+                            startIcon={<FlagRounded />}
+                            sx={{ borderRadius: 2, textTransform: 'none', py: 1.25 }}
+                        >
+                            Confirm Resign
+                        </LoadingButton>
+                        <Button
+                            onClick={() => setIsResignConfirm(false)}
+                            disabled={isProcessing}
+                            variant="outlined"
+                            fullWidth
+                            startIcon={<CloseRounded />}
+                            sx={{
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                py: 1.25,
+                                borderColor: theme.palette.divider,
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </Stack>
+                ) : (
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                        <Tooltip title="Concede the game">
+                            <Button
+                                onClick={handleResign}
+                                disabled={isProcessing}
+                                variant="outlined"
+                                color="error"
+                                fullWidth
+                                startIcon={<FlagRounded />}
+                                sx={{
+                                    borderRadius: 2,
+                                    textTransform: 'none',
+                                    py: 1.25,
+                                    borderColor:
+                                        theme.palette.mode === 'dark'
+                                            ? 'rgba(255, 99, 132, 0.4)'
+                                            : 'rgba(255, 99, 132, 0.5)',
+                                }}
+                            >
+                                Resign
+                            </Button>
+                        </Tooltip>
 
-                    {isDrawOfferPending ? (
-                        <button
-                            onClick={handleAcceptDraw}
-                            disabled={isProcessing}
-                            className="btn bg-green-600 text-white hover:bg-green-700 flex-1"
-                        >
-                            {isProcessing ? 'Accepting...' : 'Accept Draw'}
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleDrawOffer}
-                            disabled={isProcessing}
-                            className="btn bg-gray-100 text-gray-700 hover:bg-gray-200 flex-1"
-                        >
-                            {isProcessing ? 'Offering...' : 'Offer Draw'}
-                        </button>
-                    )}
-                </>
-            )}
-        </div>
+                        {isDrawOfferPending ? (
+                            <LoadingButton
+                                onClick={handleAcceptDraw}
+                                loading={isProcessing}
+                                variant="contained"
+                                color="success"
+                                fullWidth
+                                startIcon={<CheckRounded />}
+                                sx={{ borderRadius: 2, textTransform: 'none', py: 1.25 }}
+                            >
+                                Accept Draw
+                            </LoadingButton>
+                        ) : (
+                            <LoadingButton
+                                onClick={handleDrawOffer}
+                                loading={isProcessing}
+                                variant="contained"
+                                fullWidth
+                                startIcon={<HandshakeRounded />}
+                                sx={{
+                                    borderRadius: 2,
+                                    textTransform: 'none',
+                                    py: 1.25,
+                                    boxShadow: 'none',
+                                }}
+                            >
+                                Offer Draw
+                            </LoadingButton>
+                        )}
+                    </Stack>
+                )}
+            </Paper>
+        </Box>
     );
-};
+}
 
 export default GameControls;

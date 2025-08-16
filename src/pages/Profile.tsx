@@ -2,12 +2,83 @@ import { useState, useEffect } from 'react';
 import { userService } from '../services/api';
 import type { PlayerRating } from '../types';
 import { useAuth } from '../hooks/useAuth';
+import {
+    Box,
+    Card,
+    CircularProgress,
+    Container,
+    Divider,
+    Grid,
+    Avatar,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography,
+    Alert,
+    useTheme,
+    alpha
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+// Styled components
+const RatingCard = styled(Card)(({ theme }) => ({
+    padding: theme.spacing(3),
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative',
+    overflow: 'hidden',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+        transform: 'translateY(-4px)',
+        boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.15)}`,
+        '&::after': {
+            opacity: 0.7,
+            transform: 'translate(-30%, -30%) scale(1.2)'
+        }
+    },
+    '&::after': {
+        content: '""',
+        position: 'absolute',
+        width: '150px',
+        height: '150px',
+        borderRadius: '50%',
+        background: `radial-gradient(circle, ${alpha(theme.palette.primary.light, 0.2)}, transparent 70%)`,
+        top: '50%',
+        right: '0%',
+        opacity: 0.3,
+        transform: 'translate(50%, -50%)',
+        transition: 'all 0.5s ease',
+        zIndex: 0
+    }
+}));
+
+const GradientTypography = styled(Typography)(({ theme }) => ({
+    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    fontWeight: 800
+}));
+
+const StyledAvatar = styled(Avatar)(({ theme }) => ({
+    width: 80,
+    height: 80,
+    fontSize: '2rem',
+    fontWeight: 700,
+    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+    boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.25)}`
+}));
 
 const Profile = () => {
     const [ratings, setRatings] = useState<PlayerRating[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { user } = useAuth();
+    const theme = useTheme();
 
     useEffect(() => {
         const fetchRatings = async () => {
@@ -38,111 +109,351 @@ const Profile = () => {
     };
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-8">Your Profile</h1>
+        <Container maxWidth="lg" sx={{ py: 5 }}>
+            <Typography variant="h3" component="h1" sx={{ mb: 4, fontWeight: 700, position: 'relative' }}>
+                Your <GradientTypography component="span">Profile</GradientTypography>
+            </Typography>
 
             {/* Profile info */}
-            <div className="card mb-8">
-                <div className="flex items-center">
-                    <div className="h-16 w-16 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold">
+            <Card 
+                elevation={2} 
+                sx={{ 
+                    mb: 5, 
+                    p: 3,
+                    background: `linear-gradient(to right, ${alpha(theme.palette.background.paper, 0.95)}, ${alpha(theme.palette.background.paper, 1)})`
+                }}
+            >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <StyledAvatar>
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div className="ml-6">
-                        <h2 className="text-2xl font-bold">{user?.name || 'User'}</h2>
-                        <p className="text-gray-600">{user?.email || ''}</p>
-                    </div>
-                </div>
-            </div>
+                    </StyledAvatar>
+                    <Box sx={{ ml: 3 }}>
+                        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                            {user?.name || 'User'}
+                        </Typography>
+                        <Typography 
+                            variant="body1" 
+                            sx={{ 
+                                color: 'text.secondary',
+                                fontWeight: 500
+                            }}
+                        >
+                            {user?.email || ''}
+                        </Typography>
+                    </Box>
+                </Box>
+            </Card>
 
             {isLoading ? (
-                <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                </div>
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                    <CircularProgress 
+                        size={60}
+                        sx={{
+                            color: theme => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        }} 
+                    />
+                </Box>
             ) : (
                 <>
                     {/* Rating overview */}
-                    <h2 className="text-xl font-semibold mb-4">Ratings</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <Box sx={{ mb: 2 }}>
+                        <Typography 
+                            variant="h5" 
+                            sx={{ 
+                                mb: 3, 
+                                fontWeight: 600,
+                                position: 'relative',
+                                '&::after': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    bottom: '-8px',
+                                    left: 0,
+                                    width: '60px',
+                                    height: '3px',
+                                    background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.light})`,
+                                    borderRadius: '3px'
+                                }
+                            }}
+                        >
+                            Ratings
+                        </Typography>
+                    </Box>
+                    
+                    <Grid container spacing={3} sx={{ mb: 6 }}>
                         {/* Bullet */}
-                        <div className="card">
-                            <div className="text-sm text-gray-600 mb-1">Bullet</div>
-                            <div className="text-3xl font-bold">{getRating('bullet')}</div>
-                            <div className="text-sm text-gray-600 mt-2">
-                                {getGamesPlayed('bullet')} games played
-                            </div>
-                        </div>
+                        <Grid item xs={12} md={4}>
+                            <RatingCard elevation={2}>
+                                <Typography 
+                                    variant="subtitle2" 
+                                    sx={{ 
+                                        color: 'text.secondary', 
+                                        mb: 0.5,
+                                        letterSpacing: '0.05em',
+                                        textTransform: 'uppercase',
+                                        fontSize: '0.8rem'
+                                    }}
+                                >
+                                    Bullet
+                                </Typography>
+                                <Typography 
+                                    variant="h3" 
+                                    sx={{ 
+                                        fontWeight: 700,
+                                        mb: 1,
+                                        position: 'relative',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    {getRating('bullet')}
+                                </Typography>
+                                <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                        color: 'text.secondary',
+                                        fontWeight: 500,
+                                        position: 'relative',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    {getGamesPlayed('bullet')} games played
+                                </Typography>
+                            </RatingCard>
+                        </Grid>
 
                         {/* Blitz */}
-                        <div className="card">
-                            <div className="text-sm text-gray-600 mb-1">Blitz</div>
-                            <div className="text-3xl font-bold">{getRating('blitz')}</div>
-                            <div className="text-sm text-gray-600 mt-2">
-                                {getGamesPlayed('blitz')} games played
-                            </div>
-                        </div>
+                        <Grid item xs={12} md={4}>
+                            <RatingCard elevation={2}>
+                                <Typography 
+                                    variant="subtitle2" 
+                                    sx={{ 
+                                        color: 'text.secondary', 
+                                        mb: 0.5,
+                                        letterSpacing: '0.05em',
+                                        textTransform: 'uppercase',
+                                        fontSize: '0.8rem'
+                                    }}
+                                >
+                                    Blitz
+                                </Typography>
+                                <Typography 
+                                    variant="h3" 
+                                    sx={{ 
+                                        fontWeight: 700,
+                                        mb: 1,
+                                        position: 'relative',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    {getRating('blitz')}
+                                </Typography>
+                                <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                        color: 'text.secondary',
+                                        fontWeight: 500,
+                                        position: 'relative',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    {getGamesPlayed('blitz')} games played
+                                </Typography>
+                            </RatingCard>
+                        </Grid>
 
                         {/* Rapid */}
-                        <div className="card">
-                            <div className="text-sm text-gray-600 mb-1">Rapid</div>
-                            <div className="text-3xl font-bold">{getRating('rapid')}</div>
-                            <div className="text-sm text-gray-600 mt-2">
-                                {getGamesPlayed('rapid')} games played
-                            </div>
-                        </div>
-                    </div>
+                        <Grid item xs={12} md={4}>
+                            <RatingCard elevation={2}>
+                                <Typography 
+                                    variant="subtitle2" 
+                                    sx={{ 
+                                        color: 'text.secondary', 
+                                        mb: 0.5,
+                                        letterSpacing: '0.05em',
+                                        textTransform: 'uppercase',
+                                        fontSize: '0.8rem'
+                                    }}
+                                >
+                                    Rapid
+                                </Typography>
+                                <Typography 
+                                    variant="h3" 
+                                    sx={{ 
+                                        fontWeight: 700,
+                                        mb: 1,
+                                        position: 'relative',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    {getRating('rapid')}
+                                </Typography>
+                                <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                        color: 'text.secondary',
+                                        fontWeight: 500,
+                                        position: 'relative',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    {getGamesPlayed('rapid')} games played
+                                </Typography>
+                            </RatingCard>
+                        </Grid>
+                    </Grid>
 
                     {/* Detailed ratings */}
-                    <h2 className="text-xl font-semibold mb-4">Rating Details</h2>
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <Box sx={{ mb: 2 }}>
+                        <Typography 
+                            variant="h5" 
+                            sx={{ 
+                                mb: 3, 
+                                fontWeight: 600,
+                                position: 'relative',
+                                '&::after': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    bottom: '-8px',
+                                    left: 0,
+                                    width: '60px',
+                                    height: '3px',
+                                    background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.light})`,
+                                    borderRadius: '3px'
+                                }
+                            }}
+                        >
+                            Rating Details
+                        </Typography>
+                    </Box>
+                    
+                    <TableContainer 
+                        component={Paper} 
+                        elevation={2} 
+                        sx={{ 
+                            overflow: 'hidden',
+                            borderRadius: '12px',
+                            '& .MuiTableRow-root:last-child .MuiTableCell-root': {
+                                borderBottom: 'none'
+                            }
+                        }}
+                    >
+                        <Table>
+                            <TableHead>
+                                <TableRow sx={{ 
+                                    background: alpha(theme.palette.primary.light, 0.04),
+                                    borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+                                }}>
+                                    <TableCell sx={{ 
+                                        fontSize: '0.75rem', 
+                                        fontWeight: 600, 
+                                        letterSpacing: '0.05em',
+                                        color: 'text.secondary',
+                                        textTransform: 'uppercase',
+                                        py: 2
+                                    }}>
                                         Time Class
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    </TableCell>
+                                    <TableCell sx={{ 
+                                        fontSize: '0.75rem', 
+                                        fontWeight: 600, 
+                                        letterSpacing: '0.05em',
+                                        color: 'text.secondary',
+                                        textTransform: 'uppercase',
+                                        py: 2
+                                    }}>
                                         Rating
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    </TableCell>
+                                    <TableCell sx={{ 
+                                        fontSize: '0.75rem', 
+                                        fontWeight: 600, 
+                                        letterSpacing: '0.05em',
+                                        color: 'text.secondary',
+                                        textTransform: 'uppercase',
+                                        py: 2
+                                    }}>
                                         Games Played
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
                                 {ratings.length > 0 ? (
-                                    ratings.map((rating) => (
-                                        <tr key={rating.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 capitalize">
+                                    ratings.map((rating, index) => (
+                                        <TableRow 
+                                            key={rating.id} 
+                                            sx={{ 
+                                                transition: 'background-color 0.2s ease',
+                                                '&:hover': {
+                                                    backgroundColor: alpha(theme.palette.primary.light, 0.04)
+                                                },
+                                                '&:nth-of-type(odd)': {
+                                                    backgroundColor: alpha(theme.palette.background.default, 0.4),
+                                                }
+                                            }}
+                                        >
+                                            <TableCell sx={{ 
+                                                py: 2.5,
+                                                fontSize: '0.95rem',
+                                                fontWeight: 500,
+                                                textTransform: 'capitalize',
+                                                borderBottom: index === ratings.length - 1 ? 'none' : `1px solid ${alpha(theme.palette.divider, 0.8)}`
+                                            }}>
                                                 {rating.time_class}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
+                                            </TableCell>
+                                            <TableCell sx={{ 
+                                                py: 2.5,
+                                                fontSize: '0.95rem',
+                                                fontWeight: 600,
+                                                borderBottom: index === ratings.length - 1 ? 'none' : `1px solid ${alpha(theme.palette.divider, 0.8)}`
+                                            }}>
                                                 {rating.rating}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            </TableCell>
+                                            <TableCell sx={{ 
+                                                py: 2.5,
+                                                fontSize: '0.95rem',
+                                                color: 'text.secondary',
+                                                borderBottom: index === ratings.length - 1 ? 'none' : `1px solid ${alpha(theme.palette.divider, 0.8)}`
+                                            }}>
                                                 {rating.games}
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))
                                 ) : (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                    <TableRow>
+                                        <TableCell 
+                                            colSpan={3} 
+                                            align="center" 
+                                            sx={{ 
+                                                py: 4, 
+                                                color: 'text.secondary',
+                                                fontSize: '0.95rem',
+                                                fontStyle: 'italic'
+                                            }}
+                                        >
                                             No ratings data available. Play some games to get started!
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 )}
-                            </tbody>
-                        </table>
-                    </div>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </>
             )}
 
             {/* Error message */}
             {error && (
-                <div className="mt-6 p-4 bg-red-100 text-red-700 rounded-lg text-center">
+                <Alert 
+                    severity="error" 
+                    sx={{ 
+                        mt: 4, 
+                        borderRadius: 2,
+                        '& .MuiAlert-message': {
+                            fontWeight: 500
+                        }
+                    }}
+                >
                     {error}
-                </div>
+                </Alert>
             )}
-        </div>
+        </Container>
     );
 };
 

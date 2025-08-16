@@ -100,6 +100,6 @@ export interface QueueStatus {
 
 // API error response
 export interface ApiError {
-    message: string;
-    errors?: Record<string, string[]>;
+  message: string;
+  errors?: Record<string, string[]>;
 }

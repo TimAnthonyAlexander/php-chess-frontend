@@ -13,7 +13,7 @@ import {
     Chip,
     CircularProgress,
     Divider,
-    Grid,
+    GridLegacy as Grid,
     Link,
     Paper,
     Table,

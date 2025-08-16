@@ -11,7 +11,7 @@ import {
     Paper,
     Alert,
     Link,
-    Grid,
+    GridLegacy as Grid,
 } from '@mui/material';
 
 const Register = () => {

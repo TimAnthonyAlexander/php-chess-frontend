@@ -39,13 +39,18 @@ function ChessBoard({
         const next = new Chess(undefined);
 
         for (const m of moves) {
-            const ok = next.move({
-                from: m.from_sq as Square,
-                to: m.to_sq as Square,
-                promotion: m.promotion ?? undefined,
-            });
-            if (!ok) {
-                console.warn('Bad move in history at ply', m.ply, m.uci);
+            try {
+                const ok = next.move({
+                    from: m.from_sq as Square,
+                    to: m.to_sq as Square,
+                    promotion: m.promotion ?? undefined,
+                });
+
+                if (!ok) {
+                    console.warn('Bad move in history at ply', m.ply, m.uci);
+                    break;
+                }
+            } catch (error) {
                 break;
             }
         }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { modeService, queueService } from '../services/api';
 import type { TimeControl, QueueStatus } from '../types';
-import { Typography, Container, Paper, Grid, Card, CardContent, CardActionArea, CircularProgress, Button, Box, Alert, Divider } from '@mui/material';
+import { Typography, Container, Paper, GridLegacy as Grid, Card, CardContent, CardActionArea, CircularProgress, Button, Box, Alert, Divider } from '@mui/material';
 
 const GameModes = () => {
     const [timeControls, setTimeControls] = useState<TimeControl[]>([]);

@@ -15,7 +15,6 @@ import {
     Divider,
     GridLegacy as Grid,
     Link,
-    Paper,
     Table,
     TableBody,
     TableCell,
@@ -23,12 +22,15 @@ import {
     TableHead,
     TableRow,
     Typography,
+    alpha,
+    useTheme,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 const Home = () => {
+    const theme = useTheme();
     const [activeGameId, setActiveGameId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [recentGames, setRecentGames] = useState<Game[]>([]);
@@ -108,10 +110,28 @@ const Home = () => {
                 <Grid container spacing={3} direction="column">
                     {/* Welcome and Play Section */}
                     <Grid item>
-                        <Card>
-                            <CardContent>
+                        <Box 
+                            sx={{ 
+                                bgcolor: 'background.paper',
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                                position: 'relative',
+                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.05)}, ${alpha('#fff', 1)})`,
+                            }}
+                        >
+                            <Box sx={{ p: 3 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Typography variant="h5" component="h1" fontWeight="bold">
+                                    <Typography 
+                                        variant="h5" 
+                                        component="h1" 
+                                        sx={{ 
+                                            fontWeight: 600, 
+                                            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            letterSpacing: '-0.02em'
+                                        }}
+                                    >
                                         Welcome, {user?.name}!
                                     </Typography>
                                     <Button
@@ -119,17 +139,31 @@ const Home = () => {
                                         color="primary"
                                         onClick={handlePlayNow}
                                         startIcon={<PlayArrowIcon />}
+                                        sx={{
+                                            borderRadius: '12px',
+                                            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${alpha(theme.palette.primary.main, 0.8)} 100%)`,
+                                            boxShadow: 'none',
+                                            textTransform: 'none',
+                                            fontWeight: 500,
+                                            py: 1,
+                                            px: 2,
+                                            '&:hover': {
+                                                background: `linear-gradient(90deg, ${theme.palette.primary.main} 10%, ${alpha(theme.palette.primary.main, 0.9)} 100%)`,
+                                                boxShadow: `0px 2px 8px ${alpha(theme.palette.primary.main, 0.25)}`,
+                                            }
+                                        }}
                                     >
                                         {activeGameId ? 'Resume Game' : 'Play Now'}
                                     </Button>
                                 </Box>
 
                                 {activeGameId && (
-                                    <Paper
+                                    <Box
                                         sx={{
                                             p: 2,
-                                            bgcolor: 'action.hover',
+                                            bgcolor: alpha(theme.palette.primary.light, 0.05),
                                             borderRadius: 1,
+                                            border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
                                         }}
                                     >
                                         <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
@@ -143,32 +177,57 @@ const Home = () => {
                                         >
                                             Continue playing <ArrowForwardIcon fontSize="small" sx={{ ml: 0.5 }} />
                                         </Link>
-                                    </Paper>
+                                    </Box>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </Box>
+                        </Box>
                     </Grid>
 
                     {/* Recent Games */}
                     <Grid item>
-                        <Card>
-                            <CardHeader
-                                title="Recent Games"
-                                action={
-                                    <Button
-                                        component={RouterLink}
-                                        to="/history"
-                                        color="primary"
-                                        size="small"
-                                        endIcon={<ArrowForwardIcon />}
-                                    >
-                                        View all
-                                    </Button>
-                                }
-                                titleTypographyProps={{ variant: 'h6' }}
-                            />
-                            <Divider />
-                            <CardContent sx={{ pt: 2, px: 0, pb: 0 }}>
+                        <Box
+                            sx={{ 
+                                bgcolor: 'background.paper',
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                                position: 'relative',
+                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.02)}, ${alpha('#fff', 1)})`,
+                            }}
+                        >
+                            <Box 
+                                sx={{ 
+                                    p: 2.5, 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontWeight: 600,
+                                        letterSpacing: '-0.01em'
+                                    }}
+                                >
+                                    Recent Games
+                                </Typography>
+                                <Button
+                                    component={RouterLink}
+                                    to="/history"
+                                    color="primary"
+                                    size="small"
+                                    endIcon={<ArrowForwardIcon />}
+                                    sx={{
+                                        textTransform: 'none',
+                                        fontWeight: 500,
+                                        px: 1.5,
+                                    }}
+                                >
+                                    View all
+                                </Button>
+                            </Box>
+                            <Divider sx={{ opacity: 0.5 }} />
+                            <Box sx={{ pt: 2, px: 0, pb: 0 }}>
                                 {recentGames.length === 0 ? (
                                     <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
                                         No recent games found.
@@ -194,7 +253,7 @@ const Home = () => {
                                                     return (
                                                         <TableRow key={game.id} hover>
                                                             <TableCell>{formatDate(game.created_at)}</TableCell>
-                                                            <TableCell sx={{ fontWeight: 'medium' }}>
+                                                            <TableCell sx={{ fontWeight: 500 }}>
                                                                 {opponent?.name || 'Unknown'}
                                                             </TableCell>
                                                             <TableCell>{game.timeControl?.name || ''}</TableCell>
@@ -203,7 +262,21 @@ const Home = () => {
                                                                     label={result.text}
                                                                     color={result.color as 'default' | 'success' | 'error'}
                                                                     size="small"
-                                                                    variant="outlined"
+                                                                    sx={{
+                                                                        borderRadius: '12px',
+                                                                        fontWeight: 500,
+                                                                        color: result.color === 'success' 
+                                                                            ? theme.palette.success.main 
+                                                                            : result.color === 'error' 
+                                                                                ? theme.palette.error.main 
+                                                                                : theme.palette.text.primary,
+                                                                        bgcolor: result.color === 'success' 
+                                                                            ? alpha(theme.palette.success.main, 0.1)
+                                                                            : result.color === 'error'
+                                                                                ? alpha(theme.palette.error.main, 0.1)
+                                                                                : alpha(theme.palette.primary.main, 0.05),
+                                                                        border: 'none'
+                                                                    }}
                                                                 />
                                                             </TableCell>
                                                             <TableCell align="right">
@@ -212,7 +285,17 @@ const Home = () => {
                                                                     to={`/game/${game.id}`}
                                                                     color="primary"
                                                                     size="small"
-                                                                    startIcon={<VisibilityIcon />}
+                                                                    startIcon={<VisibilityIcon fontSize="small" />}
+                                                                    sx={{
+                                                                        textTransform: 'none',
+                                                                        fontWeight: 500,
+                                                                        borderRadius: '12px',
+                                                                        px: 1.5,
+                                                                        py: 0.5,
+                                                                        '&:hover': {
+                                                                            bgcolor: alpha(theme.palette.primary.main, 0.08)
+                                                                        }
+                                                                    }}
                                                                 >
                                                                     View
                                                                 </Button>
@@ -224,8 +307,8 @@ const Home = () => {
                                         </Table>
                                     </TableContainer>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </Box>
+                        </Box>
                     </Grid>
                 </Grid>
             </Grid>
@@ -235,55 +318,79 @@ const Home = () => {
                 <Grid container spacing={3} direction="column">
                     {/* Leaderboard */}
                     <Grid item>
-                        <Card>
-                            <CardHeader
-                                title="Leaderboard"
-                                titleTypographyProps={{ variant: 'h6' }}
-                            />
-                            <Divider />
-                            <CardContent sx={{ pt: 2 }}>
-                                <ButtonGroup
-                                    variant="outlined"
-                                    size="small"
-                                    fullWidth
-                                    sx={{ mb: 3 }}
+                        <Box
+                            sx={{ 
+                                bgcolor: 'background.paper',
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                                position: 'relative',
+                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.02)}, ${alpha('#fff', 1)})`,
+                            }}
+                        >
+                            <Box sx={{ p: 2.5 }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontWeight: 600,
+                                        letterSpacing: '-0.01em',
+                                        mb: 0
+                                    }}
                                 >
-                                    <Button
-                                        onClick={() => handleTimeClassChange('bullet')}
-                                        color={selectedTimeClass === 'bullet' ? 'primary' : 'inherit'}
-                                        variant={selectedTimeClass === 'bullet' ? 'contained' : 'outlined'}
-                                    >
-                                        Bullet
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleTimeClassChange('blitz')}
-                                        color={selectedTimeClass === 'blitz' ? 'primary' : 'inherit'}
-                                        variant={selectedTimeClass === 'blitz' ? 'contained' : 'outlined'}
-                                    >
-                                        Blitz
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleTimeClassChange('rapid')}
-                                        color={selectedTimeClass === 'rapid' ? 'primary' : 'inherit'}
-                                        variant={selectedTimeClass === 'rapid' ? 'contained' : 'outlined'}
-                                    >
-                                        Rapid
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleTimeClassChange('classical')}
-                                        color={selectedTimeClass === 'classical' ? 'primary' : 'inherit'}
-                                        variant={selectedTimeClass === 'classical' ? 'contained' : 'outlined'}
-                                    >
-                                        Classical
-                                    </Button>
-                                </ButtonGroup>
+                                    Leaderboard
+                                </Typography>
+                            </Box>
+                            <Divider sx={{ opacity: 0.5 }} />
+                            <Box sx={{ pt: 2.5, px: 2.5 }}>
+                                <Box 
+                                    sx={{ 
+                                        display: 'flex', 
+                                        borderRadius: 8, 
+                                        bgcolor: alpha(theme.palette.primary.light, 0.05),
+                                        p: 0.5,
+                                        mb: 3
+                                    }}
+                                >
+                                    {['bullet', 'blitz', 'rapid', 'classical'].map((timeClass) => (
+                                        <Button
+                                            key={timeClass}
+                                            onClick={() => handleTimeClassChange(timeClass)}
+                                            sx={{
+                                                borderRadius: '16px',
+                                                textTransform: 'none',
+                                                flex: 1,
+                                                py: 0.75,
+                                                color: selectedTimeClass === timeClass 
+                                                    ? 'primary.contrastText' 
+                                                    : 'text.primary',
+                                                bgcolor: selectedTimeClass === timeClass 
+                                                    ? 'primary.main' 
+                                                    : 'transparent',
+                                                fontWeight: selectedTimeClass === timeClass ? 600 : 400,
+                                                '&:hover': {
+                                                    bgcolor: selectedTimeClass === timeClass 
+                                                        ? 'primary.main' 
+                                                        : alpha(theme.palette.primary.main, 0.08)
+                                                },
+                                                transition: 'all 0.2s ease-in-out',
+                                            }}
+                                        >
+                                            {timeClass.charAt(0).toUpperCase() + timeClass.slice(1)}
+                                        </Button>
+                                    ))}
+                                </Box>
 
                                 {leaderboard.length === 0 ? (
                                     <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
                                         No leaderboard data available.
                                     </Typography>
                                 ) : (
-                                    <TableContainer component={Paper} variant="outlined">
+                                    <TableContainer 
+                                        component={Box} 
+                                        sx={{
+                                            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                                            borderRadius: 2,
+                                            overflow: 'hidden'
+                                        }}>
                                         <Table size="small">
                                             <TableHead>
                                                 <TableRow>
@@ -294,10 +401,13 @@ const Home = () => {
                                             </TableHead>
                                             <TableBody>
                                                 {leaderboard.map((entry, index) => (
-                                                    <TableRow
+                                                                                                            <TableRow
                                                         key={entry.id}
                                                         sx={{
-                                                            bgcolor: user?.id === entry.user_id ? 'warning.light' : 'inherit',
+                                                            bgcolor: user?.id === entry.user_id ? alpha(theme.palette.primary.light, 0.1) : 'inherit',
+                                                            '&:hover': {
+                                                                bgcolor: alpha(theme.palette.primary.light, 0.05)
+                                                            }
                                                         }}
                                                     >
                                                         <TableCell>{index + 1}</TableCell>
@@ -311,27 +421,49 @@ const Home = () => {
                                         </Table>
                                     </TableContainer>
                                 )}
-                            </CardContent>
-                        </Card>
+                            </Box>
+                        </Box>
                     </Grid>
 
                     {/* Quick Links */}
                     <Grid item>
-                        <Card>
-                            <CardHeader
-                                title="Quick Links"
-                                titleTypographyProps={{ variant: 'h6' }}
-                            />
-                            <Divider />
-                            <CardContent>
+                        <Box
+                            sx={{ 
+                                bgcolor: 'background.paper',
+                                borderRadius: 3,
+                                overflow: 'hidden',
+                                position: 'relative',
+                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.02)}, ${alpha('#fff', 1)})`,
+                            }}
+                        >
+                            <Box sx={{ p: 2.5 }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontWeight: 600,
+                                        letterSpacing: '-0.01em',
+                                        mb: 0
+                                    }}
+                                >
+                                    Quick Links
+                                </Typography>
+                            </Box>
+                            <Divider sx={{ opacity: 0.5 }} />
+                            <Box sx={{ p: 2.5 }}>
                                 <Grid container spacing={2} direction="column">
                                     <Grid item>
-                                        <Paper
-                                            variant="outlined"
+                                        <Box
                                             sx={{
-                                                p: 2,
+                                                p: 0,
+                                                borderRadius: 3,
+                                                overflow: 'hidden',
+                                                position: 'relative',
+                                                transition: 'all 0.2s ease-in-out',
                                                 '&:hover': {
-                                                    bgcolor: 'action.hover',
+                                                    transform: 'translateY(-2px)',
+                                                    '& .link-bg': {
+                                                        opacity: 1,
+                                                    }
                                                 },
                                             }}
                                         >
@@ -340,22 +472,61 @@ const Home = () => {
                                                 to="/play"
                                                 color="inherit"
                                                 underline="none"
+                                                sx={{
+                                                    display: 'block',
+                                                    position: 'relative',
+                                                    p: 2.5,
+                                                    zIndex: 1,
+                                                }}
                                             >
-                                                <Typography fontWeight="medium" gutterBottom>Find a Game</Typography>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <Box
+                                                    className="link-bg"
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.08)}, ${alpha(theme.palette.primary.main, 0.03)})`,
+                                                        opacity: 0.8,
+                                                        transition: 'opacity 0.2s ease-in-out',
+                                                        zIndex: -1,
+                                                    }}
+                                                />
+                                                <Typography 
+                                                    fontWeight={600} 
+                                                    gutterBottom
+                                                    sx={{ 
+                                                        color: theme.palette.primary.main,
+                                                        letterSpacing: '-0.01em'
+                                                    }}
+                                                >
+                                                    Find a Game
+                                                </Typography>
+                                                <Typography 
+                                                    variant="body2" 
+                                                    color="text.secondary"
+                                                    sx={{ opacity: 0.8 }}
+                                                >
                                                     Join the queue to play
                                                 </Typography>
                                             </Link>
-                                        </Paper>
+                                        </Box>
                                     </Grid>
 
                                     <Grid item>
-                                        <Paper
-                                            variant="outlined"
+                                        <Box
                                             sx={{
-                                                p: 2,
+                                                p: 0,
+                                                borderRadius: 3,
+                                                overflow: 'hidden',
+                                                position: 'relative',
+                                                transition: 'all 0.2s ease-in-out',
                                                 '&:hover': {
-                                                    bgcolor: 'action.hover',
+                                                    transform: 'translateY(-2px)',
+                                                    '& .link-bg': {
+                                                        opacity: 1,
+                                                    }
                                                 },
                                             }}
                                         >
@@ -364,17 +535,50 @@ const Home = () => {
                                                 to="/profile"
                                                 color="inherit"
                                                 underline="none"
+                                                sx={{
+                                                    display: 'block',
+                                                    position: 'relative',
+                                                    p: 2.5,
+                                                    zIndex: 1,
+                                                }}
                                             >
-                                                <Typography fontWeight="medium" gutterBottom>Your Profile</Typography>
-                                                <Typography variant="body2" color="text.secondary">
+                                                <Box
+                                                    className="link-bg"
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.08)}, ${alpha(theme.palette.primary.main, 0.03)})`,
+                                                        opacity: 0.8,
+                                                        transition: 'opacity 0.2s ease-in-out',
+                                                        zIndex: -1,
+                                                    }}
+                                                />
+                                                <Typography 
+                                                    fontWeight={600} 
+                                                    gutterBottom
+                                                    sx={{ 
+                                                        color: theme.palette.primary.main,
+                                                        letterSpacing: '-0.01em'
+                                                    }}
+                                                >
+                                                    Your Profile
+                                                </Typography>
+                                                <Typography 
+                                                    variant="body2" 
+                                                    color="text.secondary"
+                                                    sx={{ opacity: 0.8 }}
+                                                >
                                                     View your stats and ratings
                                                 </Typography>
                                             </Link>
-                                        </Paper>
+                                        </Box>
                                     </Grid>
                                 </Grid>
-                            </CardContent>
-                        </Card>
+                            </Box>
+                        </Box>
                     </Grid>
                 </Grid>
             </Grid>

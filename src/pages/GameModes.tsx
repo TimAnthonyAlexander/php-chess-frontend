@@ -2,9 +2,24 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { modeService, queueService } from '../services/api';
 import type { TimeControl, QueueStatus } from '../types';
-import { Typography, Container, Paper, GridLegacy as Grid, Card, CardContent, CardActionArea, CircularProgress, Button, Box, Alert, Divider } from '@mui/material';
+import { 
+    Typography, 
+    Container, 
+    GridLegacy as Grid, 
+    Card, 
+    CardContent, 
+    CardActionArea, 
+    CircularProgress, 
+    Button, 
+    Box, 
+    Alert, 
+    Divider,
+    alpha,
+    useTheme
+} from '@mui/material';
 
 const GameModes = () => {
+    const theme = useTheme();
     const [timeControls, setTimeControls] = useState<TimeControl[]>([]);
     const [selectedMode, setSelectedMode] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -142,28 +157,51 @@ const GameModes = () => {
                 gutterBottom
                 sx={{
                     fontWeight: 600,
-                    letterSpacing: '-0.01em',
-                    color: 'text.primary',
-                    mb: 3
+                    letterSpacing: '-0.02em',
+                    mb: 3,
+                    background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
                 }}
             >
                 Play Chess
             </Typography>
 
             {isJoiningQueue ? (
-                <Paper
-                    elevation={0}
+                <Box
                     sx={{
                         p: 5,
                         textAlign: 'center',
                         borderRadius: 3,
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        background: `linear-gradient(to bottom right, ${alpha(theme.palette.background.paper, 0.95)}, ${alpha(theme.palette.background.paper, 0.9)})`,
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.04)'
+                        border: `1px solid ${alpha(theme.palette.divider, 0.05)}`
                     }}>
                     <Box display="flex" flexDirection="column" alignItems="center">
-                        <Typography variant="h5" sx={{ mb: 2 }}>Finding opponent...</Typography>
-                        <Typography variant="h3" sx={{ mb: 3, fontWeight: 'bold' }}>{formatQueueTime(queueTime)}</Typography>
+                        <Typography 
+                            variant="h5" 
+                            sx={{ 
+                                mb: 2, 
+                                fontWeight: 500,
+                                background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                letterSpacing: '-0.02em'
+                            }}
+                        >
+                            Finding opponent...
+                        </Typography>
+                        <Typography 
+                            variant="h3" 
+                            sx={{ 
+                                mb: 3, 
+                                fontWeight: 600, 
+                                letterSpacing: '-0.025em',
+                                color: theme.palette.primary.main
+                            }}
+                        >
+                            {formatQueueTime(queueTime)}
+                        </Typography>
 
                         {queueStatus?.widening && (
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -179,11 +217,29 @@ const GameModes = () => {
                                     '50%': { opacity: 0.5 }
                                 },
                                 display: 'flex',
-                                gap: 1
+                                gap: 1.5
                             }}>
-                                <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
-                                <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
-                                <Box sx={{ width: 8, height: 8, bgcolor: 'primary.main', borderRadius: '50%' }} />
+                                {[0, 1, 2].map((i) => (
+                                    <Box 
+                                        key={i}
+                                        sx={{ 
+                                            width: 10, 
+                                            height: 10, 
+                                            borderRadius: '50%',
+                                            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                                            animationDelay: `${i * 0.15}s`,
+                                            animation: `bounce 1.4s infinite ease-in-out ${i * 0.15}s`,
+                                            '@keyframes bounce': {
+                                                '0%, 100%': {
+                                                    transform: 'translateY(0)'
+                                                },
+                                                '50%': {
+                                                    transform: 'translateY(-6px)'
+                                                }
+                                            }
+                                        }} 
+                                    />
+                                ))}
                             </Box>
                         </Box>
 
@@ -198,98 +254,148 @@ const GameModes = () => {
                                 borderRadius: 28,
                                 textTransform: 'none',
                                 fontWeight: 500,
-                                borderWidth: 1.5,
                                 letterSpacing: '0.01em',
                                 transition: 'all 0.2s ease',
+                                borderWidth: 0,
+                                color: theme.palette.error.main,
+                                bgcolor: alpha(theme.palette.error.main, 0.08),
                                 '&:hover': {
-                                    borderWidth: 1.5,
-                                    backgroundColor: 'rgba(211, 47, 47, 0.04)'
+                                    borderWidth: 0,
+                                    bgcolor: alpha(theme.palette.error.main, 0.12),
+                                    transform: 'translateY(-1px)',
                                 }
                             }}
                         >
                             Cancel Search
                         </Button>
                     </Box>
-                </Paper>
+                </Box>
             ) : (
                 <Grid container spacing={3}>
                     {Object.entries(groupedTimeControls).map(([timeClass, controls]) => (
                         <Grid item xs={12} md={6} key={timeClass}>
-                            <Paper
-                                elevation={0}
+                            <Box
                                 sx={{
                                     p: 3,
                                     borderRadius: 3,
-                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                    background: `linear-gradient(to bottom right, ${alpha(theme.palette.background.paper, 0.95)}, ${alpha(theme.palette.background.paper, 0.9)})`,
                                     backdropFilter: 'blur(10px)',
-                                    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.04)'
+                                    border: `1px solid ${alpha(theme.palette.divider, 0.05)}`
                                 }}>
-                                <Typography variant="h5" sx={{ mb: 2, textTransform: 'capitalize' }}>
+                                <Typography 
+                                    variant="h5" 
+                                    sx={{ 
+                                        mb: 2, 
+                                        textTransform: 'capitalize',
+                                        fontWeight: 600,
+                                        letterSpacing: '-0.01em',
+                                        background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                    }}
+                                >
                                     {timeClass}
                                 </Typography>
-                                <Divider sx={{ mb: 2 }} />
+                                <Divider sx={{ mb: 2.5, opacity: 0.5 }} />
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                     {controls.map((tc) => (
-                                        <Card
+                                        <Box
                                             key={tc.id}
-                                            elevation={selectedMode === tc.slug ? 2 : 0}
                                             sx={{
-                                                border: 0,
-                                                borderRadius: 2,
-                                                bgcolor: selectedMode === tc.slug ? 'rgba(25, 118, 210, 0.04)' : 'background.paper',
+                                                borderRadius: 2.5,
+                                                bgcolor: selectedMode === tc.slug 
+                                                    ? alpha(theme.palette.primary.light, 0.08)
+                                                    : alpha(theme.palette.background.paper, 0.8),
+                                                border: `1px solid ${selectedMode === tc.slug 
+                                                    ? alpha(theme.palette.primary.main, 0.1)
+                                                    : alpha(theme.palette.divider, 0.08)}`,
                                                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                                 position: 'relative',
                                                 overflow: 'hidden',
                                                 '&:hover': {
+                                                    transform: 'translateY(-2px)',
                                                     bgcolor: selectedMode === tc.slug
-                                                        ? 'rgba(25, 118, 210, 0.08)'
-                                                        : 'rgba(0, 0, 0, 0.02)'
+                                                        ? alpha(theme.palette.primary.light, 0.1)
+                                                        : alpha(theme.palette.primary.light, 0.02)
                                                 },
-                                                '&:before': selectedMode === tc.slug ? {
-                                                    content: '""',
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    width: '4px',
-                                                    height: '100%',
-                                                    bgcolor: 'primary.main',
-                                                    borderTopLeftRadius: 4,
-                                                    borderBottomLeftRadius: 4,
-                                                } : {}
+                                                backgroundImage: selectedMode === tc.slug 
+                                                    ? `linear-gradient(to right, ${alpha(theme.palette.primary.light, 0.15)}, ${alpha(theme.palette.primary.light, 0.05)})`
+                                                    : 'none'
                                             }}
                                         >
-                                            <CardActionArea onClick={() => setSelectedMode(tc.slug)}>
-                                                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Box>
-                                                        <Typography variant="h6">{tc.name}</Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {Math.floor(tc.initial_sec / 60)}min {tc.initial_sec % 60}s + {tc.increment_ms / 1000}s
-                                                        </Typography>
-                                                    </Box>
+                                            <Box 
+                                                onClick={() => setSelectedMode(tc.slug)}
+                                                sx={{ 
+                                                    p: 2.5,
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between', 
+                                                    alignItems: 'center',
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        '& .time-text': {
+                                                            color: theme.palette.primary.main
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Typography 
+                                                        variant="h6" 
+                                                        sx={{ 
+                                                            fontWeight: selectedMode === tc.slug ? 600 : 500,
+                                                            color: selectedMode === tc.slug 
+                                                                ? theme.palette.primary.main 
+                                                                : theme.palette.text.primary,
+                                                            letterSpacing: '-0.01em',
+                                                            mb: 0.5
+                                                        }}
+                                                    >
+                                                        {tc.name}
+                                                    </Typography>
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        className="time-text"
+                                                        sx={{ 
+                                                            color: selectedMode === tc.slug 
+                                                                ? alpha(theme.palette.primary.main, 0.7) 
+                                                                : 'text.secondary',
+                                                            transition: 'color 0.2s ease',
+                                                            fontWeight: 400
+                                                        }}
+                                                    >
+                                                        {Math.floor(tc.initial_sec / 60)}min {tc.initial_sec % 60}s + {tc.increment_ms / 1000}s
+                                                    </Typography>
+                                                </Box>
 
-                                                    {selectedMode === tc.slug && (
-                                                        <Box sx={{
+                                                {selectedMode === tc.slug && (
+                                                    <Box 
+                                                        sx={{
+                                                            width: 20,
+                                                            height: 20,
+                                                            borderRadius: '50%',
                                                             display: 'flex',
                                                             alignItems: 'center',
-                                                            gap: 0.75
-                                                        }}>
-                                                            <Box sx={{
-                                                                width: 6,
-                                                                height: 6,
+                                                            justifyContent: 'center',
+                                                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                        }}
+                                                    >
+                                                        <Box 
+                                                            sx={{
+                                                                width: 8,
+                                                                height: 8,
                                                                 borderRadius: '50%',
-                                                                bgcolor: 'primary.main',
-                                                                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)',
+                                                                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
                                                                 transition: 'all 0.2s ease-in-out',
-                                                            }} />
-                                                        </Box>
-                                                    )}
-                                                </CardContent>
-                                            </CardActionArea>
-                                        </Card>
+                                                            }} 
+                                                        />
+                                                    </Box>
+                                                )}
+                                            </Box>
+                                        </Box>
                                     ))}
                                 </Box>
-                            </Paper>
+                            </Box>
                         </Grid>
                     ))}
 
@@ -326,12 +432,14 @@ const GameModes = () => {
                             borderRadius: 28,
                             textTransform: 'none',
                             fontWeight: 500,
-                            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
                             letterSpacing: '0.01em',
                             transition: 'all 0.2s ease',
+                            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${alpha(theme.palette.primary.main, 0.8)} 100%)`,
+                            boxShadow: 'none',
                             '&:hover': {
-                                boxShadow: '0 6px 16px rgba(25, 118, 210, 0.4)',
-                                transform: 'translateY(-1px)'
+                                background: `linear-gradient(90deg, ${theme.palette.primary.main} 10%, ${alpha(theme.palette.primary.main, 0.9)} 100%)`,
+                                boxShadow: `0px 2px 8px ${alpha(theme.palette.primary.main, 0.25)}`,
+                                transform: 'translateY(-2px)'
                             }
                         }}
                     >

@@ -48,7 +48,7 @@ export const authService = {
     isAuthenticated: (): boolean => {
         return localStorage.getItem('chess_token') !== null;
     },
-    
+
     getCurrentUser: async (): Promise<User> => {
         const response = await api.get<{ user: User }>('/me');
         return response.data.user;
@@ -79,6 +79,7 @@ export const queueService = {
 export const gameService = {
     getGame: async (gameId: number): Promise<{ game: Game, moves: GameMove[] }> => {
         const response = await api.get(`/games/${gameId}`);
+        console.log(response.data);
         return response.data;
     },
 

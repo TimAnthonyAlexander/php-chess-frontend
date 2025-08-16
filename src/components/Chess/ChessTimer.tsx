@@ -34,7 +34,7 @@ const ChessTimer: React.FC<ChessTimerProps> = ({ game, playerId, lastMoveAt, isA
             return;
         }
 
-        const isWhiteTurn = game.move_index % 2 === 0;
+        const isWhiteTurn = game.to_move === 'white';
         const lastMoveTime = new Date(lastMoveAt).getTime();
         const interval = setInterval(() => {
             const now = Date.now();
@@ -53,7 +53,7 @@ const ChessTimer: React.FC<ChessTimerProps> = ({ game, playerId, lastMoveAt, isA
     return (
         <div className="grid grid-cols-2 gap-4">
             <div
-                className={`p-3 rounded-lg ${game.move_index % 2 === 0 && game.status === 'active'
+                className={`p-3 rounded-lg ${game.to_move === 'white' && game.status === 'active'
                         ? 'bg-primary text-white'
                         : 'bg-gray-100'
                     } ${isWhite ? 'order-1' : 'order-2'}`}
@@ -63,7 +63,7 @@ const ChessTimer: React.FC<ChessTimerProps> = ({ game, playerId, lastMoveAt, isA
             </div>
 
             <div
-                className={`p-3 rounded-lg ${game.move_index % 2 === 1 && game.status === 'active'
+                className={`p-3 rounded-lg ${game.to_move === 'black' && game.status === 'active'
                         ? 'bg-primary text-white'
                         : 'bg-gray-100'
                     } ${isWhite ? 'order-2' : 'order-1'}`}

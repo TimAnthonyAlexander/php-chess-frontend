@@ -27,9 +27,7 @@ function ChessBoard({
     const [pendingMove, setPendingMove] = useState<{ from: Square; to: Square } | null>(null);
 
     const isPlayerTurn =
-        !isViewOnly &&
-        ((game.move_index % 2 === 0 && game.white_id === playerId) ||
-            (game.move_index % 2 === 1 && game.black_id === playerId));
+        !isViewOnly && game.to_move_user_id === playerId;
 
     useEffect(() => {
         if (game.white_id === playerId) setOrientation('white');
@@ -37,19 +35,22 @@ function ChessBoard({
     }, [game.white_id, game.black_id, playerId]);
 
     useEffect(() => {
-        const next = new Chess();
-        if (game.fen !== 'startpos') {
-            next.load(game.fen);
-        }
+        // If you ever support non-standard starts, put that FEN here instead of undefined
+        const next = new Chess(undefined);
+
         for (const m of moves) {
-            try {
-                next.move({ from: m.from_sq as Square, to: m.to_sq as Square, promotion: m.promotion || undefined });
-            } catch (e) {
-                console.error('Invalid move:', m.uci, e);
+            const ok = next.move({
+                from: m.from_sq as Square,
+                to: m.to_sq as Square,
+                promotion: m.promotion ?? undefined,
+            });
+            if (!ok) {
+                console.warn('Bad move in history at ply', m.ply, m.uci);
+                break;
             }
         }
         setChess(next);
-    }, [game.fen, moves]);
+    }, [moves]);
 
     useEffect(() => {
         if (moves.length) {

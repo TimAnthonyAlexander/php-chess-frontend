@@ -72,6 +72,8 @@ const GamePlay = () => {
                     white_time_ms: response.white_time_ms,
                     black_time_ms: response.black_time_ms,
                     last_move_at: response.last_move_at,
+                    to_move: response.to_move,
+                    to_move_user_id: response.to_move_user_id,
                 };
             });
 

@@ -269,6 +269,13 @@ const Home = () => {
                                     >
                                         Rapid
                                     </Button>
+                                    <Button
+                                        onClick={() => handleTimeClassChange('classical')}
+                                        color={selectedTimeClass === 'classical' ? 'primary' : 'inherit'}
+                                        variant={selectedTimeClass === 'classical' ? 'contained' : 'outlined'}
+                                    >
+                                        Classical
+                                    </Button>
                                 </ButtonGroup>
 
                                 {leaderboard.length === 0 ? (

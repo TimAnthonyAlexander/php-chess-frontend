@@ -60,7 +60,7 @@ const Login = () => {
                     }}
                 >
                     <Typography component="h1" variant="h4" color="primary" fontWeight="bold">
-                        Chess App
+                        PHP Chess
                     </Typography>
 
                     <Typography component="h2" variant="h5" sx={{ mt: 2, mb: 4 }}>

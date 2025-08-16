@@ -91,7 +91,7 @@ const NavBar = () => {
                 borderBottom: `1px solid ${theme.palette.divider}`
             }}>
                 <Typography variant="h6" sx={{ my: 2 }}>
-                    Chess App
+                    PHP Chess
                 </Typography>
                 <IconButton color="inherit" onClick={handleDrawerToggle}>
                     <CloseIcon />
@@ -200,7 +200,7 @@ const NavBar = () => {
                                 }
                             }}
                         >
-                            Chess App
+                            PHP Chess
                         </Typography>
 
                         {/* Desktop menu */}

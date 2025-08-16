@@ -1,78 +1,66 @@
-import { useState, useEffect } from 'react';
-import type { Game } from '../../types';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-interface ChessTimerProps {
-    game: Game;
-    playerId: number;
-    lastMoveAt: string | null;
-    isActive: boolean;
+type Props = {
+  whiteMs: number;
+  blackMs: number;
+  lastMoveAt: string | null;
+  toMove: 'white' | 'black' | null;
+  isActive: boolean;
+  serverNowIso?: string | null;
+};
+
+function format(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r.toString().padStart(2, '0')}`;
 }
 
-const ChessTimer: React.FC<ChessTimerProps> = ({ game, playerId, lastMoveAt, isActive }) => {
-    const isWhite = game.white_id === playerId;
-    const [whiteTime, setWhiteTime] = useState(game.white_time_ms);
-    const [blackTime, setBlackTime] = useState(game.black_time_ms);
+function ChessTimer({ whiteMs, blackMs, lastMoveAt, toMove, isActive, serverNowIso }: Props) {
+  const [tick, setTick] = useState(0);
+  const raf = useRef<number | null>(null);
 
-    // Format time display
-    const formatTime = (timeMs: number): string => {
-        const totalSeconds = Math.max(0, Math.floor(timeMs / 1000));
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
+  const serverOffsetMs = useMemo(() => {
+    if (!serverNowIso) return 0;
+    const serverNow = Date.parse(serverNowIso);
+    if (Number.isNaN(serverNow)) return 0;
+    return Date.now() - serverNow;
+  }, [serverNowIso]);
 
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  useEffect(() => {
+    const loop = () => {
+      setTick((t) => (t + 1) % 1_000_000);
+      raf.current = requestAnimationFrame(loop);
     };
+    raf.current = requestAnimationFrame(loop);
+    return () => {
+      if (raf.current) cancelAnimationFrame(raf.current);
+    };
+  }, []);
 
-    // Update timers
-    useEffect(() => {
-        setWhiteTime(game.white_time_ms);
-        setBlackTime(game.black_time_ms);
-    }, [game.white_time_ms, game.black_time_ms]);
+  const lm = lastMoveAt ? Date.parse(lastMoveAt) : null;
+  const nowAdj = Date.now() - serverOffsetMs;
+  const elapsed = isActive && lm ? nowAdj - lm : 0;
 
-    // Timer countdown effect
-    useEffect(() => {
-        if (!isActive || game.status !== 'active' || !lastMoveAt) {
-            return;
-        }
+  const whiteDisplay = Math.max(
+    0,
+    whiteMs - (isActive && toMove === 'white' ? elapsed : 0)
+  );
+  const blackDisplay = Math.max(
+    0,
+    blackMs - (isActive && toMove === 'black' ? elapsed : 0)
+  );
 
-        const isWhiteTurn = game.to_move === 'white';
-        const lastMoveTime = new Date(lastMoveAt).getTime();
-        const interval = setInterval(() => {
-            const now = Date.now();
-            const elapsed = now - lastMoveTime;
-
-            if (isWhiteTurn) {
-                setWhiteTime(Math.max(0, game.white_time_ms - elapsed));
-            } else {
-                setBlackTime(Math.max(0, game.black_time_ms - elapsed));
-            }
-        }, 100);
-
-        return () => clearInterval(interval);
-    }, [game, isActive, lastMoveAt]);
-
-    return (
-        <div className="grid grid-cols-2 gap-4">
-            <div
-                className={`p-3 rounded-lg ${game.to_move === 'white' && game.status === 'active'
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100'
-                    } ${isWhite ? 'order-1' : 'order-2'}`}
-            >
-                <div className="text-sm font-medium">White</div>
-                <div className="text-xl font-bold">{formatTime(whiteTime)}</div>
-            </div>
-
-            <div
-                className={`p-3 rounded-lg ${game.to_move === 'black' && game.status === 'active'
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100'
-                    } ${isWhite ? 'order-2' : 'order-1'}`}
-            >
-                <div className="text-sm font-medium">Black</div>
-                <div className="text-xl font-bold">{formatTime(blackTime)}</div>
-            </div>
-        </div>
-    );
-};
+  return (
+    <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ fontWeight: toMove === 'white' && isActive ? 700 : 500 }}>
+        White: {format(whiteDisplay)}
+      </div>
+      <div style={{ fontWeight: toMove === 'black' && isActive ? 700 : 500 }}>
+        Black: {format(blackDisplay)}
+      </div>
+    </div>
+  );
+}
 
 export default ChessTimer;

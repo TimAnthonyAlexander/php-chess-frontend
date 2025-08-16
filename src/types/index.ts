@@ -40,6 +40,7 @@ export interface Game {
     updated_at: string;
     to_move?: 'white' | 'black';
     to_move_user_id?: number;
+    server_now?: string;
     // Relationships
     timeControl?: TimeControl;
     white?: User;
@@ -74,6 +75,7 @@ export interface GameSync {
     to_move: 'white' | 'black';
     to_move_user_id: number;
     since?: number;
+    server_now?: string;
     white?: User;
     black?: User;
     timeControl?: TimeControl;

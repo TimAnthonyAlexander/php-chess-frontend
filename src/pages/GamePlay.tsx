@@ -114,6 +114,7 @@ const GamePlay = () => {
                     last_move_at: response.last_move_at,
                     to_move: response.to_move,
                     to_move_user_id: response.to_move_user_id,
+                    server_now: response.server_now,
                 };
             });
 
@@ -378,10 +379,12 @@ const GamePlay = () => {
                                 Time Remaining
                             </Typography>
                             <ChessTimer
-                                game={game}
-                                playerId={user.id}
+                                whiteMs={game.white_time_ms}
+                                blackMs={game.black_time_ms}
                                 lastMoveAt={game.last_move_at}
+                                toMove={game.to_move}
                                 isActive={game.status === 'active'}
+                                serverNowIso={game.server_now}
                             />
                         </SurfaceCard>
 

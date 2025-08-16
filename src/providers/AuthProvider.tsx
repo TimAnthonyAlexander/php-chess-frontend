@@ -20,10 +20,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 setUser(userData);
                 setIsAuthenticated(true);
             } catch (error) {
-                // Token might be invalid
+                // Token might be invalid or expired
+                console.error('Failed to fetch user data:', error);
+                // Clear invalid token
                 localStorage.removeItem('chess_token');
                 setIsAuthenticated(false);
-                console.error('Failed to fetch user data:', error);
             } finally {
                 setIsLoading(false);
             }

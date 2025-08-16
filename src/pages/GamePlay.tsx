@@ -2,11 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { gameService } from '../services/api';
-import type { Game, GameMove, GameSync } from '../types';
+import type { Game, GameMove } from '../types';
 import ChessBoard from '../components/Chess/ChessBoard';
 import ChessTimer from '../components/Chess/ChessTimer';
 import MoveList from '../components/Chess/MoveList';
 import GameControls from '../components/Chess/GameControls';
+import {
+    Container,
+    Box,
+    Grid,
+    Typography,
+    Button,
+    Paper,
+    CircularProgress,
+    Alert,
+} from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
 
 const GamePlay = () => {
     const { id } = useParams<{ id: string }>();
@@ -147,21 +158,25 @@ const GamePlay = () => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            </div>
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                <CircularProgress />
+            </Box>
         );
     }
 
     if (error || !game || !user) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen">
-                <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-                <p className="mb-6">{error || 'Game not found'}</p>
-                <button onClick={() => navigate('/')} className="btn btn-primary">
+            <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
+                <Typography variant="h5" color="error" gutterBottom fontWeight="bold">
+                    Error
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 3 }}>
+                    {error || 'Game not found'}
+                </Typography>
+                <Button variant="contained" color="primary" onClick={() => navigate('/')}>
                     Return Home
-                </button>
-            </div>
+                </Button>
+            </Box>
         );
     }
 
@@ -189,99 +204,136 @@ const GamePlay = () => {
         return (isWhite && game.result === '1-0') || (!isWhite && game.result === '0-1');
     };
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="flex justify-between items-center mb-6">
-                <button onClick={() => navigate('/')} className="flex items-center text-primary hover:underline">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back to Home
-                </button>
+    const getStatusAlertColor = () => {
+        if (isPlayerWinner()) return 'success';
+        if (game.result === '1/2-1/2') return 'info';
+        return 'error';
+    };
 
-                <div className="text-right">
-                    <div className="text-sm text-gray-600">Time Control</div>
-                    <div className="font-medium">{game.timeControl?.name || 'Standard'}</div>
-                </div>
-            </div>
+    return (
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Button
+                    startIcon={<ArrowBack />}
+                    onClick={() => navigate('/')}
+                    color="primary"
+                    sx={{
+                        textTransform: 'none',
+                        '&:hover': {
+                            backgroundColor: 'transparent',
+                            textDecoration: 'underline'
+                        }
+                    }}
+                >
+                    Back to Home
+                </Button>
+
+                <Box textAlign="right">
+                    <Typography variant="caption" color="text.secondary">
+                        Time Control
+                    </Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                        {game.timeControl?.name || 'Standard'}
+                    </Typography>
+                </Box>
+            </Box>
 
             {/* Game status banner */}
             {game.status === 'finished' && (
-                <div
-                    className={`mb-6 p-4 rounded-lg text-center font-bold ${isPlayerWinner()
-                            ? 'bg-green-100 text-green-800'
-                            : game.result === '1/2-1/2'
-                                ? 'bg-gray-100 text-gray-800'
-                                : 'bg-red-100 text-red-800'
-                        }`}
+                <Alert
+                    severity={getStatusAlertColor()}
+                    sx={{
+                        mb: 3,
+                        justifyContent: 'center',
+                        borderRadius: 2,
+                        '& .MuiAlert-message': {
+                            fontWeight: 'bold'
+                        }
+                    }}
                 >
                     {getGameStatus()}
-                </div>
+                </Alert>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Grid container spacing={4}>
                 {/* Left column - player info and timers */}
-                <div className="space-y-6">
-                    {/* Player info */}
-                    <div className="card">
-                        <div className="mb-4 pb-3 border-b border-gray-100">
-                            <div className="text-sm text-gray-500">Playing as</div>
-                            <div className="font-semibold text-lg">{playerColor}</div>
-                        </div>
+                <Grid item xs={12} lg={3}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {/* Player info */}
+                        <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+                            <Box mb={2} pb={1} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
+                                <Typography variant="caption" color="text.secondary">
+                                    Playing as
+                                </Typography>
+                                <Typography variant="body1" fontWeight={600} fontSize="1.1rem">
+                                    {playerColor}
+                                </Typography>
+                            </Box>
 
-                        <div>
-                            <div className="text-sm text-gray-500">Opponent</div>
-                            <div className="font-semibold text-lg">{opponent?.name || 'Unknown'}</div>
-                        </div>
-                    </div>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary">
+                                    Opponent
+                                </Typography>
+                                <Typography variant="body1" fontWeight={600} fontSize="1.1rem">
+                                    {opponent?.name || 'Unknown'}
+                                </Typography>
+                            </Box>
+                        </Paper>
 
-                    {/* Chess timer */}
-                    <div className="card">
-                        <h3 className="font-medium mb-4">Time Remaining</h3>
-                        <ChessTimer
-                            game={game}
-                            playerId={user.id}
-                            lastMoveAt={game.last_move_at}
-                            isActive={game.status === 'active'}
-                        />
-                    </div>
-
-                    {/* Move list */}
-                    <div className="hidden lg:block">
-                        <MoveList moves={moves} />
-                    </div>
-
-                    {/* Game controls */}
-                    {game.status === 'active' && (
-                        <div className="card">
-                            <h3 className="font-medium mb-4">Game Controls</h3>
-                            <GameControls
+                        {/* Chess timer */}
+                        <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+                            <Typography variant="body1" fontWeight={500} mb={2}>
+                                Time Remaining
+                            </Typography>
+                            <ChessTimer
                                 game={game}
                                 playerId={user.id}
-                                onResign={handleResign}
-                                onOfferDraw={handleOfferDraw}
-                                onAcceptDraw={handleAcceptDraw}
+                                lastMoveAt={game.last_move_at}
+                                isActive={game.status === 'active'}
                             />
-                        </div>
-                    )}
-                </div>
+                        </Paper>
+
+                        {/* Move list - desktop */}
+                        <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+                            <MoveList moves={moves} />
+                        </Box>
+
+                        {/* Game controls */}
+                        {game.status === 'active' && (
+                            <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+                                <Typography variant="body1" fontWeight={500} mb={2}>
+                                    Game Controls
+                                </Typography>
+                                <GameControls
+                                    game={game}
+                                    playerId={user.id}
+                                    onResign={handleResign}
+                                    onOfferDraw={handleOfferDraw}
+                                    onAcceptDraw={handleAcceptDraw}
+                                />
+                            </Paper>
+                        )}
+                    </Box>
+                </Grid>
 
                 {/* Center column - chessboard */}
-                <div className="lg:col-span-2 flex flex-col items-center">
-                    <ChessBoard
-                        game={game}
-                        moves={moves}
-                        playerId={user.id}
-                        onMove={handleMove}
-                    />
+                <Grid item xs={12} lg={9}>
+                    <Box display="flex" flexDirection="column" alignItems="center">
+                        <ChessBoard
+                            game={game}
+                            moves={moves}
+                            playerId={user.id}
+                            onMove={handleMove}
+                        />
 
-                    {/* Mobile view - move list */}
-                    <div className="mt-6 w-full lg:hidden">
-                        <MoveList moves={moves} />
-                    </div>
-                </div>
-            </div>
-        </div>
+                        {/* Mobile view - move list */}
+                        <Box mt={3} width="100%" sx={{ display: { xs: 'block', lg: 'none' } }}>
+                            <MoveList moves={moves} />
+                        </Box>
+                    </Box>
+                </Grid>
+            </Grid>
+        </Container>
     );
 };
 

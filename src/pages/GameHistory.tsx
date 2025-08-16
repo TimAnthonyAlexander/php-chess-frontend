@@ -1,8 +1,68 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { userService } from '../services/api';
 import type { Game } from '../types';
 import { useAuth } from '../hooks/useAuth';
+import {
+    Box,
+    Button,
+    ButtonGroup,
+    Chip,
+    CircularProgress,
+    Container,
+    Link,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography,
+    Alert,
+    useTheme,
+    alpha
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+
+// Styled components
+const FilterButton = styled(Button)(({ theme }) => ({
+    position: 'relative',
+    overflow: 'hidden',
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `linear-gradient(45deg, ${alpha(theme.palette.primary.main, 0.8)}, ${alpha(theme.palette.secondary.main, 0.8)})`,
+        opacity: 0,
+        transition: 'opacity 0.3s ease'
+    },
+    '&.active': {
+        color: '#fff',
+        '&::before': {
+            opacity: 1
+        }
+    },
+    '& .MuiButton-label': {
+        position: 'relative',
+        zIndex: 1
+    }
+}));
+
+const ColorDot = styled('span')(({ color }: { color: 'white' | 'black' }) => ({
+    display: 'inline-block',
+    width: 12,
+    height: 12,
+    borderRadius: '50%',
+    marginRight: 8,
+    backgroundColor: color === 'white' ? '#f5f5f5' : '#111',
+    border: color === 'white' ? '1px solid #ddd' : 'none',
+    boxShadow: `0 2px 4px ${color === 'white' ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.3)'}`
+}));
 
 const GameHistory = () => {
     const [games, setGames] = useState<Game[]>([]);
@@ -10,6 +70,7 @@ const GameHistory = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedTimeClass, setSelectedTimeClass] = useState<string | null>(null);
     const { user } = useAuth();
+    const theme = useTheme();
 
     useEffect(() => {
         const fetchGames = async () => {
@@ -50,157 +111,337 @@ const GameHistory = () => {
         return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
-    const getResultClass = (result: string): string => {
-        if (result === 'Win') return 'bg-green-100 text-green-800';
-        if (result === 'Loss') return 'bg-red-100 text-red-800';
-        return 'bg-gray-100 text-gray-800';
+    const getResultColor = (result: string): 'success' | 'error' | 'default' => {
+        if (result === 'Win') return 'success';
+        if (result === 'Loss') return 'error';
+        return 'default';
     };
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-6">Game History</h1>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Typography variant="h3" sx={{ 
+                mb: 4, 
+                fontWeight: 700,
+                position: 'relative',
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: '-8px',
+                    left: 0,
+                    width: '80px',
+                    height: '4px',
+                    background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.light})`,
+                    borderRadius: '2px'
+                }
+            }}>
+                Game History
+            </Typography>
 
             {/* Time class filter */}
-            <div className="flex space-x-2 mb-8">
-                <button
-                    onClick={() => setSelectedTimeClass(null)}
-                    className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === null
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+            <Box sx={{ mb: 5 }}>
+                <ButtonGroup 
+                    variant="outlined" 
+                    size="medium"
+                    sx={{ 
+                        '& .MuiButton-root': {
+                            borderColor: alpha(theme.palette.primary.main, 0.3),
+                            px: 3,
+                            py: 1,
+                            transition: 'all 0.3s ease',
+                        }
+                    }}
                 >
-                    All
-                </button>
-                <button
-                    onClick={() => setSelectedTimeClass('bullet')}
-                    className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === 'bullet'
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                >
-                    Bullet
-                </button>
-                <button
-                    onClick={() => setSelectedTimeClass('blitz')}
-                    className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === 'blitz'
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                >
-                    Blitz
-                </button>
-                <button
-                    onClick={() => setSelectedTimeClass('rapid')}
-                    className={`px-4 py-2 rounded-md text-sm ${selectedTimeClass === 'rapid'
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                >
-                    Rapid
-                </button>
-            </div>
+                    <FilterButton
+                        className={selectedTimeClass === null ? 'active' : ''}
+                        onClick={() => setSelectedTimeClass(null)}
+                        sx={{
+                            fontWeight: selectedTimeClass === null ? 600 : 400,
+                        }}
+                    >
+                        All
+                    </FilterButton>
+                    <FilterButton
+                        className={selectedTimeClass === 'bullet' ? 'active' : ''}
+                        onClick={() => setSelectedTimeClass('bullet')}
+                        sx={{
+                            fontWeight: selectedTimeClass === 'bullet' ? 600 : 400,
+                        }}
+                    >
+                        Bullet
+                    </FilterButton>
+                    <FilterButton
+                        className={selectedTimeClass === 'blitz' ? 'active' : ''}
+                        onClick={() => setSelectedTimeClass('blitz')}
+                        sx={{
+                            fontWeight: selectedTimeClass === 'blitz' ? 600 : 400,
+                        }}
+                    >
+                        Blitz
+                    </FilterButton>
+                    <FilterButton
+                        className={selectedTimeClass === 'rapid' ? 'active' : ''}
+                        onClick={() => setSelectedTimeClass('rapid')}
+                        sx={{
+                            fontWeight: selectedTimeClass === 'rapid' ? 600 : 400,
+                        }}
+                    >
+                        Rapid
+                    </FilterButton>
+                </ButtonGroup>
+            </Box>
 
             {/* Games table */}
             {isLoading ? (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                </div>
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
+                    <CircularProgress 
+                        size={60}
+                        sx={{ color: theme => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})` }}
+                    />
+                </Box>
             ) : games.length > 0 ? (
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Date
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Time
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Opponent
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Color
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Time Control
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Result
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Termination
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Action
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {games.map((game) => {
-                                    const isWhite = user?.id === game.white_id;
-                                    const opponent = isWhite ? game.black : game.white;
-                                    const result = formatResult(game);
-
-                                    return (
-                                        <tr key={game.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {formatDate(game.created_at)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {formatTime(game.created_at)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {opponent?.name || 'Unknown'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="flex items-center">
-                                                    <span
-                                                        className={`h-3 w-3 rounded-full mr-2 ${isWhite ? 'bg-gray-100 border border-gray-300' : 'bg-gray-800'}`}
-                                                    ></span>
-                                                    <span className="text-sm">{isWhite ? 'White' : 'Black'}</span>
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {game.timeControl?.name || 'Standard'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getResultClass(result)}`}>
-                                                    {result}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
-                                                {game.reason || 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
-                                                <Link to={`/game/${game.id}`} className="hover:underline">
-                                                    View
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <TableContainer 
+                    component={Paper} 
+                    elevation={2}
+                    sx={{ 
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        mb: 4
+                    }}
+                >
+                    <Table sx={{ minWidth: 800 }}>
+                        <TableHead sx={{ backgroundColor: alpha(theme.palette.primary.light, 0.04) }}>
+                            <TableRow>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Date
+                                </TableCell>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Time
+                                </TableCell>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Opponent
+                                </TableCell>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Color
+                                </TableCell>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Time Control
+                                </TableCell>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Result
+                                </TableCell>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Termination
+                                </TableCell>
+                                <TableCell sx={{ 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: 600, 
+                                    letterSpacing: '0.05em',
+                                    color: 'text.secondary',
+                                    textTransform: 'uppercase',
+                                }}>
+                                    Action
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {games.map((game, index) => {
+                                const isWhite = user?.id === game.white_id;
+                                const opponent = isWhite ? game.black : game.white;
+                                const result = formatResult(game);
+                                const resultColor = getResultColor(result);
+                                
+                                return (
+                                    <TableRow 
+                                        key={game.id}
+                                        sx={{ 
+                                            transition: 'background-color 0.2s ease',
+                                            '&:hover': {
+                                                backgroundColor: alpha(theme.palette.primary.light, 0.04)
+                                            },
+                                            '&:nth-of-type(odd)': {
+                                                backgroundColor: alpha(theme.palette.background.default, 0.4),
+                                            }
+                                        }}
+                                    >
+                                        <TableCell sx={{ 
+                                            py: 2.5, 
+                                            fontSize: '0.875rem', 
+                                            color: theme.palette.text.secondary 
+                                        }}>
+                                            {formatDate(game.created_at)}
+                                        </TableCell>
+                                        <TableCell sx={{ 
+                                            py: 2.5, 
+                                            fontSize: '0.875rem', 
+                                            color: theme.palette.text.secondary 
+                                        }}>
+                                            {formatTime(game.created_at)}
+                                        </TableCell>
+                                        <TableCell sx={{ 
+                                            py: 2.5, 
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>
+                                            {opponent?.name || 'Unknown'}
+                                        </TableCell>
+                                        <TableCell sx={{ py: 2.5 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <ColorDot color={isWhite ? 'white' : 'black'} />
+                                                <Typography variant="body2">
+                                                    {isWhite ? 'White' : 'Black'}
+                                                </Typography>
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell sx={{ 
+                                            py: 2.5, 
+                                            fontSize: '0.875rem', 
+                                            color: theme.palette.text.secondary 
+                                        }}>
+                                            {game.timeControl?.name || 'Standard'}
+                                        </TableCell>
+                                        <TableCell sx={{ py: 2.5 }}>
+                                            <Chip
+                                                label={result}
+                                                color={resultColor}
+                                                size="small"
+                                                variant="outlined"
+                                                sx={{ 
+                                                    fontWeight: 600,
+                                                    minWidth: 60,
+                                                    '& .MuiChip-label': {
+                                                        px: 1
+                                                    }
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell sx={{ 
+                                            py: 2.5, 
+                                            fontSize: '0.875rem', 
+                                            color: theme.palette.text.secondary,
+                                            textTransform: 'capitalize'
+                                        }}>
+                                            {game.reason || 'N/A'}
+                                        </TableCell>
+                                        <TableCell sx={{ py: 2.5 }}>
+                                            <Link
+                                                component={RouterLink}
+                                                to={`/game/${game.id}`}
+                                                underline="hover"
+                                                sx={{ 
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    color: theme.palette.primary.main,
+                                                    fontWeight: 500,
+                                                    fontSize: '0.875rem',
+                                                    transition: 'color 0.2s ease',
+                                                    '&:hover': {
+                                                        color: theme.palette.primary.dark
+                                                    }
+                                                }}
+                                            >
+                                                <VisibilityIcon sx={{ mr: 0.5, fontSize: '0.9rem' }} />
+                                                View
+                                            </Link>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             ) : (
-                <div className="text-center py-12 bg-white rounded-lg shadow">
-                    <p className="text-gray-500">No games found.</p>
-                    <Link to="/play" className="btn btn-primary inline-block mt-4">
+                <Paper 
+                    elevation={2} 
+                    sx={{ 
+                        textAlign: 'center', 
+                        py: 8, 
+                        px: 4, 
+                        borderRadius: '12px',
+                        background: `linear-gradient(to bottom, ${theme.palette.background.paper}, ${alpha(theme.palette.background.default, 0.8)})`
+                    }}
+                >
+                    <Typography variant="body1" sx={{ color: 'text.secondary', mb: 3 }}>
+                        No games found.
+                    </Typography>
+                    <Button
+                        component={RouterLink}
+                        to="/play"
+                        variant="contained"
+                        sx={{ 
+                            px: 4,
+                            py: 1.2,
+                            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                            boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.25)}`,
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+                            }
+                        }}
+                    >
                         Play a Game
-                    </Link>
-                </div>
+                    </Button>
+                </Paper>
             )}
 
             {/* Error message */}
             {error && (
-                <div className="mt-6 p-4 bg-red-100 text-red-700 rounded-lg text-center">
+                <Alert 
+                    severity="error" 
+                    sx={{ 
+                        mt: 4, 
+                        borderRadius: 2,
+                        '& .MuiAlert-message': {
+                            fontWeight: 500
+                        }
+                    }}
+                >
                     {error}
-                </div>
+                </Alert>
             )}
-        </div>
+        </Container>
     );
 };
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -14,16 +14,53 @@ import {
     ListItemText,
     Toolbar,
     Typography,
-    useTheme
+    useTheme,
+    alpha,
+    useScrollTrigger
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
+
+// Styled components
+const GradientButton = styled(Button)(({ theme }) => ({
+    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.light})`,
+    color: '#fff',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+        boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+        transform: 'translateY(-2px)'
+    }
+}));
+
+const AnimatedNavLink = styled(Button)(({ theme }) => ({
+    position: 'relative',
+    overflow: 'hidden',
+    '&::after': {
+        content: '""',
+        position: 'absolute',
+        bottom: 0,
+        left: '50%',
+        width: 0,
+        height: 2,
+        background: `linear-gradient(90deg, ${theme.palette.secondary.light}, ${theme.palette.primary.main})`,
+        transition: 'all 0.3s ease',
+        transform: 'translateX(-50%)'
+    },
+    '&:hover::after': {
+        width: '80%'
+    }
+}));
 
 const NavBar = () => {
     const theme = useTheme();
     const location = useLocation();
     const { isAuthenticated, logout, user } = useAuth();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const scrollTrigger = useScrollTrigger({
+        disableHysteresis: true,
+        threshold: 100
+    });
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -68,8 +105,15 @@ const NavBar = () => {
                             to={item.path}
                             sx={{
                                 textAlign: 'center',
-                                bgcolor: isActive(item.path) ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
-                                borderLeft: isActive(item.path) ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent',
+                                position: 'relative',
+                                bgcolor: isActive(item.path) ? alpha(theme.palette.primary.main, 0.08) : 'transparent',
+                                borderLeft: isActive(item.path)
+                                    ? `4px solid ${theme.palette.primary.main}`
+                                    : '4px solid transparent',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    bgcolor: alpha(theme.palette.primary.light, 0.08),
+                                }
                             }}
                         >
                             <ListItemText
@@ -89,7 +133,11 @@ const NavBar = () => {
                             onClick={logout}
                             sx={{
                                 textAlign: 'center',
-                                color: theme.palette.error.main
+                                color: theme.palette.secondary.main,
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    bgcolor: alpha(theme.palette.secondary.main, 0.08),
+                                }
                             }}
                         >
                             <ListItemText primary="Logout" />
@@ -104,10 +152,11 @@ const NavBar = () => {
                             to="/register"
                             sx={{
                                 textAlign: 'center',
-                                bgcolor: theme.palette.primary.main,
+                                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.light})`,
                                 color: '#fff',
+                                transition: 'all 0.3s ease',
                                 '&:hover': {
-                                    bgcolor: theme.palette.primary.dark,
+                                    filter: 'brightness(1.1)',
                                 }
                             }}
                         >
@@ -121,7 +170,17 @@ const NavBar = () => {
 
     return (
         <>
-            <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: 'background.paper' }}>
+            <AppBar
+                position="sticky"
+                color="default"
+                elevation={scrollTrigger ? 4 : 0}
+                sx={{
+                    bgcolor: 'background.paper',
+                    backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.95), rgba(255,255,255,0.98))',
+                    backdropFilter: 'blur(8px)',
+                    transition: 'all 0.3s ease'
+                }}>
+
                 <Container maxWidth="lg">
                     <Toolbar sx={{ justifyContent: 'space-between' }}>
                         <Typography
@@ -129,9 +188,16 @@ const NavBar = () => {
                             component={RouterLink}
                             to="/"
                             sx={{
-                                fontWeight: 700,
-                                color: 'primary.main',
+                                fontWeight: 800,
+                                background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.main})`,
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                letterSpacing: '0.02em',
                                 textDecoration: 'none',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                }
                             }}
                         >
                             Chess App
@@ -140,47 +206,56 @@ const NavBar = () => {
                         {/* Desktop menu */}
                         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
                             {navItems.map((item) => (
-                                <Button
+                                <AnimatedNavLink
                                     key={item.title}
                                     component={RouterLink}
                                     to={item.path}
                                     sx={{
                                         mx: 1,
                                         color: isActive(item.path) ? 'primary.main' : 'text.secondary',
-                                        fontWeight: isActive(item.path) ? 'medium' : 'regular',
-                                        borderBottom: isActive(item.path) ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
+                                        fontWeight: isActive(item.path) ? 500 : 400,
                                         borderRadius: 0,
                                         '&:hover': {
                                             backgroundColor: 'transparent',
                                             color: 'primary.main',
                                         },
+                                        '&::after': isActive(item.path) ? {
+                                            width: '80%',
+                                            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.light})`,
+                                        } : {}
                                     }}
                                 >
                                     {item.title}
-                                </Button>
+                                </AnimatedNavLink>
                             ))}
 
                             {isAuthenticated && (
                                 <Button
                                     variant="outlined"
-                                    color="secondary"
                                     onClick={logout}
-                                    sx={{ ml: 2 }}
+                                    sx={{
+                                        ml: 2,
+                                        borderColor: alpha(theme.palette.secondary.main, 0.5),
+                                        color: theme.palette.secondary.main,
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            borderColor: theme.palette.secondary.main,
+                                            backgroundColor: alpha(theme.palette.secondary.main, 0.04),
+                                        }
+                                    }}
                                 >
                                     Logout
                                 </Button>
                             )}
 
                             {!isAuthenticated && (
-                                <Button
-                                    variant="contained"
-                                    color="primary"
+                                <GradientButton
                                     component={RouterLink}
                                     to="/register"
                                     sx={{ ml: 2 }}
                                 >
                                     Sign Up
-                                </Button>
+                                </GradientButton>
                             )}
                         </Box>
 

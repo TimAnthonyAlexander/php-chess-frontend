@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import React from 'react';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { styled, alpha } from '@mui/material/styles';
@@ -43,19 +41,7 @@ const MainContent = styled(Box)(({ theme }) => ({
 }));
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-    const location = useLocation();
-    const { isAuthenticated, logout } = useAuth();
     const theme = useTheme();
-    const [scrollPosition, setScrollPosition] = useState(0);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrollPosition(window.scrollY);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     return (
         <Box
@@ -74,7 +60,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <NavBar />
 
             <MainContent component="main">
-                <Container maxWidth="xl">
+                <Container
+                    maxWidth="xl"
+                    sx={{
+                        p: 2,
+                        boxSizing: 'border-box',
+                    }}
+                >
                     {children}
                 </Container>
             </MainContent>

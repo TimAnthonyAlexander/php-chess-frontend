@@ -95,20 +95,36 @@ const Home = () => {
         bgcolor: 'background.paper',
         borderRadius: 2, // 8px
         border: `1px solid ${theme.palette.divider}`,
+        boxSizing: 'border-box',
     } as const;
 
     const subtle = (src: string, amt = 0.04) => alpha(src, amt);
 
     return (
-        <Grid container spacing={3}>
-            {/* Main section - Left Side */}
+        <Grid container spacing={3} sx={{ padding: 0, }}>
             <Grid item xs={12} lg={8}>
-                <Grid container spacing={3} direction="column">
-                    {/* Welcome and Play Section */}
-                    <Grid item>
+                <Grid
+                    container
+                    spacing={3}
+                    direction="column"
+                >
+                    <Grid item xs={12}>
                         <Box sx={shell}>
-                            <Box sx={{ p: 3 }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Box
+                                sx={{
+                                    p: 3,
+                                    boxSizing: 'border-box',
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: { xs: 'column', md: 'row' },
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        mb: 2,
+                                    }}
+                                >
                                     <Typography
                                         variant="h5"
                                         component="h1"
@@ -116,6 +132,8 @@ const Home = () => {
                                             fontWeight: 700,
                                             letterSpacing: '-0.02em',
                                             color: 'primary.main',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
                                         }}
                                     >
                                         Welcome, {user?.name}!
@@ -165,8 +183,7 @@ const Home = () => {
                         </Box>
                     </Grid>
 
-                    {/* Recent Games */}
-                    <Grid item>
+                    <Grid item xs={12}>
                         <Box sx={shell}>
                             <Box
                                 sx={{

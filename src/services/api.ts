@@ -10,9 +10,17 @@ import type {
     User,
 } from '../types';
 
-// Create axios instance with base URL and default headers
+const hostname = window.location.hostname;
+
+let baseURL: string;
+if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    baseURL = 'http://localhost:4999/api';
+} else {
+    baseURL = 'https://chess-api.timanthonyalexander.de/api';
+}
+
 const api = axios.create({
-    baseURL: 'http://localhost:4999/api',
+    baseURL: baseURL,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

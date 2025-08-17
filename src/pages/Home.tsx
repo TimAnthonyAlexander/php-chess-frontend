@@ -6,10 +6,6 @@ import { useAuth } from '../hooks/useAuth';
 import {
     Box,
     Button,
-    ButtonGroup,
-    Card,
-    CardHeader,
-    CardContent,
     Chip,
     CircularProgress,
     Divider,
@@ -45,7 +41,7 @@ const Home = () => {
                 const [activeGameRes, recentGamesRes, leaderboardRes] = await Promise.all([
                     userService.getActiveGame(),
                     userService.getRecentGames(),
-                    leaderboardService.getLeaderboard(selectedTimeClass, 10)
+                    leaderboardService.getLeaderboard(selectedTimeClass, 10),
                 ]);
 
                 setActiveGameId(activeGameRes.game_id);
@@ -61,27 +57,21 @@ const Home = () => {
         fetchData();
     }, [selectedTimeClass]);
 
-    const formatResult = (game: Game): { text: string, color: string } => {
-        if (!game.result) return { text: 'In Progress', color: 'default' };
+    const formatResult = (game: Game): { text: string; color: 'default' | 'success' | 'error' } => {
+        if (!game.result) return { text: 'In Progress', color: 'default' as const };
 
         const isWhite = user?.id === game.white_id;
 
         if (game.result === '1-0') {
-            return isWhite
-                ? { text: 'Win', color: 'success' }
-                : { text: 'Loss', color: 'error' };
+            return isWhite ? { text: 'Win', color: 'success' } : { text: 'Loss', color: 'error' };
         } else if (game.result === '0-1') {
-            return isWhite
-                ? { text: 'Loss', color: 'error' }
-                : { text: 'Win', color: 'success' };
+            return isWhite ? { text: 'Loss', color: 'error' } : { text: 'Win', color: 'success' };
         } else {
             return { text: 'Draw', color: 'default' };
         }
     };
 
-    const formatDate = (dateString: string): string => {
-        return new Date(dateString).toLocaleDateString();
-    };
+    const formatDate = (dateString: string): string => new Date(dateString).toLocaleDateString();
 
     const handlePlayNow = () => {
         if (activeGameId) {
@@ -91,9 +81,7 @@ const Home = () => {
         }
     };
 
-    const handleTimeClassChange = (timeClass: string) => {
-        setSelectedTimeClass(timeClass);
-    };
+    const handleTimeClassChange = (timeClass: string) => setSelectedTimeClass(timeClass);
 
     if (isLoading) {
         return (
@@ -103,6 +91,14 @@ const Home = () => {
         );
     }
 
+    const shell = {
+        bgcolor: 'background.paper',
+        borderRadius: 2, // 8px
+        border: `1px solid ${theme.palette.divider}`,
+    } as const;
+
+    const subtle = (src: string, amt = 0.04) => alpha(src, amt);
+
     return (
         <Grid container spacing={3}>
             {/* Main section - Left Side */}
@@ -110,26 +106,16 @@ const Home = () => {
                 <Grid container spacing={3} direction="column">
                     {/* Welcome and Play Section */}
                     <Grid item>
-                        <Box 
-                            sx={{ 
-                                bgcolor: 'background.paper',
-                                borderRadius: 3,
-                                overflow: 'hidden',
-                                position: 'relative',
-                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.05)}, ${alpha('#fff', 1)})`,
-                            }}
-                        >
+                        <Box sx={shell}>
                             <Box sx={{ p: 3 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Typography 
-                                        variant="h5" 
-                                        component="h1" 
-                                        sx={{ 
-                                            fontWeight: 600, 
-                                            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                            letterSpacing: '-0.02em'
+                                    <Typography
+                                        variant="h5"
+                                        component="h1"
+                                        sx={{
+                                            fontWeight: 700,
+                                            letterSpacing: '-0.02em',
+                                            color: 'primary.main',
                                         }}
                                     >
                                         Welcome, {user?.name}!
@@ -140,17 +126,13 @@ const Home = () => {
                                         onClick={handlePlayNow}
                                         startIcon={<PlayArrowIcon />}
                                         sx={{
-                                            borderRadius: '12px',
-                                            background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${alpha(theme.palette.primary.main, 0.8)} 100%)`,
-                                            boxShadow: 'none',
-                                            textTransform: 'none',
-                                            fontWeight: 500,
-                                            py: 1,
+                                            borderRadius: 2,
                                             px: 2,
-                                            '&:hover': {
-                                                background: `linear-gradient(90deg, ${theme.palette.primary.main} 10%, ${alpha(theme.palette.primary.main, 0.9)} 100%)`,
-                                                boxShadow: `0px 2px 8px ${alpha(theme.palette.primary.main, 0.25)}`,
-                                            }
+                                            py: 1,
+                                            textTransform: 'none',
+                                            fontWeight: 600,
+                                            boxShadow: 'none',
+                                            '&:hover': { backgroundColor: subtle(theme.palette.primary.main, 0.16) },
                                         }}
                                     >
                                         {activeGameId ? 'Resume Game' : 'Play Now'}
@@ -161,9 +143,9 @@ const Home = () => {
                                     <Box
                                         sx={{
                                             p: 2,
-                                            bgcolor: alpha(theme.palette.primary.light, 0.05),
-                                            borderRadius: 1,
-                                            border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
+                                            borderRadius: 2,
+                                            border: `1px solid ${theme.palette.divider}`,
+                                            bgcolor: subtle(theme.palette.common.white, 0.02),
                                         }}
                                     >
                                         <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
@@ -173,9 +155,9 @@ const Home = () => {
                                             component={RouterLink}
                                             to={`/game/${activeGameId}`}
                                             color="primary"
-                                            sx={{ fontWeight: 'medium', display: 'flex', alignItems: 'center' }}
+                                            sx={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
                                         >
-                                            Continue playing <ArrowForwardIcon fontSize="small" sx={{ ml: 0.5 }} />
+                                            Continue playing <ArrowForwardIcon fontSize="small" />
                                         </Link>
                                     </Box>
                                 )}
@@ -185,30 +167,16 @@ const Home = () => {
 
                     {/* Recent Games */}
                     <Grid item>
-                        <Box
-                            sx={{ 
-                                bgcolor: 'background.paper',
-                                borderRadius: 3,
-                                overflow: 'hidden',
-                                position: 'relative',
-                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.02)}, ${alpha('#fff', 1)})`,
-                            }}
-                        >
-                            <Box 
-                                sx={{ 
-                                    p: 2.5, 
-                                    display: 'flex', 
+                        <Box sx={shell}>
+                            <Box
+                                sx={{
+                                    p: 2.5,
+                                    display: 'flex',
                                     justifyContent: 'space-between',
-                                    alignItems: 'center'
+                                    alignItems: 'center',
                                 }}
                             >
-                                <Typography 
-                                    variant="h6" 
-                                    sx={{ 
-                                        fontWeight: 600,
-                                        letterSpacing: '-0.01em'
-                                    }}
-                                >
+                                <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
                                     Recent Games
                                 </Typography>
                                 <Button
@@ -217,16 +185,12 @@ const Home = () => {
                                     color="primary"
                                     size="small"
                                     endIcon={<ArrowForwardIcon />}
-                                    sx={{
-                                        textTransform: 'none',
-                                        fontWeight: 500,
-                                        px: 1.5,
-                                    }}
+                                    sx={{ textTransform: 'none', fontWeight: 600, px: 1.5, borderRadius: 2 }}
                                 >
                                     View all
                                 </Button>
                             </Box>
-                            <Divider sx={{ opacity: 0.5 }} />
+                            <Divider />
                             <Box sx={{ pt: 2, px: 0, pb: 0 }}>
                                 {recentGames.length === 0 ? (
                                     <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
@@ -251,31 +215,37 @@ const Home = () => {
                                                     const result = formatResult(game);
 
                                                     return (
-                                                        <TableRow key={game.id} hover>
+                                                        <TableRow
+                                                            key={game.id}
+                                                            hover
+                                                            sx={{
+                                                                '&:hover': { backgroundColor: subtle(theme.palette.common.white, 0.02) },
+                                                            }}
+                                                        >
                                                             <TableCell>{formatDate(game.created_at)}</TableCell>
-                                                            <TableCell sx={{ fontWeight: 500 }}>
-                                                                {opponent?.name || 'Unknown'}
-                                                            </TableCell>
+                                                            <TableCell sx={{ fontWeight: 600 }}>{opponent?.name || 'Unknown'}</TableCell>
                                                             <TableCell>{game.timeControl?.name || ''}</TableCell>
                                                             <TableCell>
                                                                 <Chip
                                                                     label={result.text}
-                                                                    color={result.color as 'default' | 'success' | 'error'}
+                                                                    color={result.color}
                                                                     size="small"
+                                                                    variant="outlined"
                                                                     sx={{
-                                                                        borderRadius: '12px',
-                                                                        fontWeight: 500,
-                                                                        color: result.color === 'success' 
-                                                                            ? theme.palette.success.main 
-                                                                            : result.color === 'error' 
-                                                                                ? theme.palette.error.main 
-                                                                                : theme.palette.text.primary,
-                                                                        bgcolor: result.color === 'success' 
-                                                                            ? alpha(theme.palette.success.main, 0.1)
-                                                                            : result.color === 'error'
-                                                                                ? alpha(theme.palette.error.main, 0.1)
-                                                                                : alpha(theme.palette.primary.main, 0.05),
-                                                                        border: 'none'
+                                                                        borderRadius: 2,
+                                                                        fontWeight: 600,
+                                                                        borderColor:
+                                                                            result.color === 'success'
+                                                                                ? alpha(theme.palette.success.main, 0.4)
+                                                                                : result.color === 'error'
+                                                                                    ? alpha(theme.palette.error.main, 0.4)
+                                                                                    : alpha(theme.palette.text.primary, 0.24),
+                                                                        bgcolor:
+                                                                            result.color === 'success'
+                                                                                ? alpha(theme.palette.success.main, 0.12)
+                                                                                : result.color === 'error'
+                                                                                    ? alpha(theme.palette.error.main, 0.12)
+                                                                                    : alpha(theme.palette.primary.main, 0.08),
                                                                     }}
                                                                 />
                                                             </TableCell>
@@ -288,13 +258,11 @@ const Home = () => {
                                                                     startIcon={<VisibilityIcon fontSize="small" />}
                                                                     sx={{
                                                                         textTransform: 'none',
-                                                                        fontWeight: 500,
-                                                                        borderRadius: '12px',
+                                                                        fontWeight: 600,
+                                                                        borderRadius: 2,
                                                                         px: 1.5,
                                                                         py: 0.5,
-                                                                        '&:hover': {
-                                                                            bgcolor: alpha(theme.palette.primary.main, 0.08)
-                                                                        }
+                                                                        '&:hover': { bgcolor: subtle(theme.palette.primary.main, 0.12) },
                                                                     }}
                                                                 >
                                                                     View
@@ -318,65 +286,47 @@ const Home = () => {
                 <Grid container spacing={3} direction="column">
                     {/* Leaderboard */}
                     <Grid item>
-                        <Box
-                            sx={{ 
-                                bgcolor: 'background.paper',
-                                borderRadius: 3,
-                                overflow: 'hidden',
-                                position: 'relative',
-                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.02)}, ${alpha('#fff', 1)})`,
-                            }}
-                        >
+                        <Box sx={shell}>
                             <Box sx={{ p: 2.5 }}>
-                                <Typography 
-                                    variant="h6" 
-                                    sx={{ 
-                                        fontWeight: 600,
-                                        letterSpacing: '-0.01em',
-                                        mb: 0
-                                    }}
-                                >
+                                <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em', mb: 0 }}>
                                     Leaderboard
                                 </Typography>
                             </Box>
-                            <Divider sx={{ opacity: 0.5 }} />
+                            <Divider />
                             <Box sx={{ pt: 2.5, px: 2.5 }}>
-                                <Box 
-                                    sx={{ 
-                                        display: 'flex', 
-                                        borderRadius: 8, 
-                                        bgcolor: alpha(theme.palette.primary.light, 0.05),
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        gap: 0.5,
+                                        borderRadius: 2,
                                         p: 0.5,
-                                        mb: 3
+                                        border: `1px solid ${theme.palette.divider}`,
+                                        bgcolor: subtle(theme.palette.common.white, 0.02),
+                                        mb: 3,
                                     }}
                                 >
-                                    {['bullet', 'blitz', 'rapid', 'classical'].map((timeClass) => (
-                                        <Button
-                                            key={timeClass}
-                                            onClick={() => handleTimeClassChange(timeClass)}
-                                            sx={{
-                                                borderRadius: '16px',
-                                                textTransform: 'none',
-                                                flex: 1,
-                                                py: 0.75,
-                                                color: selectedTimeClass === timeClass 
-                                                    ? 'primary.contrastText' 
-                                                    : 'text.primary',
-                                                bgcolor: selectedTimeClass === timeClass 
-                                                    ? 'primary.main' 
-                                                    : 'transparent',
-                                                fontWeight: selectedTimeClass === timeClass ? 600 : 400,
-                                                '&:hover': {
-                                                    bgcolor: selectedTimeClass === timeClass 
-                                                        ? 'primary.main' 
-                                                        : alpha(theme.palette.primary.main, 0.08)
-                                                },
-                                                transition: 'all 0.2s ease-in-out',
-                                            }}
-                                        >
-                                            {timeClass.charAt(0).toUpperCase() + timeClass.slice(1)}
-                                        </Button>
-                                    ))}
+                                    {['bullet', 'blitz', 'rapid', 'classical'].map((timeClass) => {
+                                        const selected = selectedTimeClass === timeClass;
+                                        return (
+                                            <Button
+                                                key={timeClass}
+                                                onClick={() => handleTimeClassChange(timeClass)}
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    textTransform: 'none',
+                                                    flex: 1,
+                                                    py: 0.75,
+                                                    fontWeight: selected ? 700 : 500,
+                                                    color: selected ? 'primary.contrastText' : 'text.primary',
+                                                    bgcolor: selected ? 'primary.main' : 'transparent',
+                                                    '&:hover': { bgcolor: selected ? 'primary.main' : subtle(theme.palette.primary.main, 0.12) },
+                                                    transition: 'background-color 120ms cubic-bezier(0.2,0,0,1)',
+                                                }}
+                                            >
+                                                {timeClass.charAt(0).toUpperCase() + timeClass.slice(1)}
+                                            </Button>
+                                        );
+                                    })}
                                 </Box>
 
                                 {leaderboard.length === 0 ? (
@@ -384,13 +334,14 @@ const Home = () => {
                                         No leaderboard data available.
                                     </Typography>
                                 ) : (
-                                    <TableContainer 
-                                        component={Box} 
+                                    <TableContainer
+                                        component={Box}
                                         sx={{
-                                            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                                            border: `1px solid ${theme.palette.divider}`,
                                             borderRadius: 2,
-                                            overflow: 'hidden'
-                                        }}>
+                                            overflow: 'hidden',
+                                        }}
+                                    >
                                         <Table size="small">
                                             <TableHead>
                                                 <TableRow>
@@ -401,18 +352,17 @@ const Home = () => {
                                             </TableHead>
                                             <TableBody>
                                                 {leaderboard.map((entry, index) => (
-                                                                                                            <TableRow
+                                                    <TableRow
                                                         key={entry.id}
                                                         sx={{
-                                                            bgcolor: user?.id === entry.user_id ? alpha(theme.palette.primary.light, 0.1) : 'inherit',
-                                                            '&:hover': {
-                                                                bgcolor: alpha(theme.palette.primary.light, 0.05)
-                                                            }
+                                                            bgcolor:
+                                                                user?.id === entry.user_id ? subtle(theme.palette.primary.main, 0.12) : 'inherit',
+                                                            '&:hover': { bgcolor: subtle(theme.palette.common.white, 0.02) },
                                                         }}
                                                     >
                                                         <TableCell>{index + 1}</TableCell>
                                                         <TableCell>{entry.user?.name || 'Unknown'}</TableCell>
-                                                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                                                        <TableCell align="right" sx={{ fontWeight: 700 }}>
                                                             {entry.rating}
                                                         </TableCell>
                                                     </TableRow>
@@ -427,44 +377,25 @@ const Home = () => {
 
                     {/* Quick Links */}
                     <Grid item>
-                        <Box
-                            sx={{ 
-                                bgcolor: 'background.paper',
-                                borderRadius: 3,
-                                overflow: 'hidden',
-                                position: 'relative',
-                                backgroundImage: `linear-gradient(to bottom right, ${alpha(theme.palette.primary.light, 0.02)}, ${alpha('#fff', 1)})`,
-                            }}
-                        >
+                        <Box sx={shell}>
                             <Box sx={{ p: 2.5 }}>
-                                <Typography 
-                                    variant="h6" 
-                                    sx={{ 
-                                        fontWeight: 600,
-                                        letterSpacing: '-0.01em',
-                                        mb: 0
-                                    }}
-                                >
+                                <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em', mb: 0 }}>
                                     Quick Links
                                 </Typography>
                             </Box>
-                            <Divider sx={{ opacity: 0.5 }} />
+                            <Divider />
                             <Box sx={{ p: 2.5 }}>
                                 <Grid container spacing={2} direction="column">
                                     <Grid item>
                                         <Box
                                             sx={{
                                                 p: 0,
-                                                borderRadius: 3,
-                                                overflow: 'hidden',
+                                                borderRadius: 2,
+                                                border: `1px solid ${theme.palette.divider}`,
                                                 position: 'relative',
-                                                transition: 'all 0.2s ease-in-out',
-                                                '&:hover': {
-                                                    transform: 'translateY(-2px)',
-                                                    '& .link-bg': {
-                                                        opacity: 1,
-                                                    }
-                                                },
+                                                overflow: 'hidden',
+                                                transition: 'transform 100ms cubic-bezier(0.2,0,0,1)',
+                                                '&:hover': { transform: 'translateY(-2px)' },
                                             }}
                                         >
                                             <Link
@@ -475,39 +406,25 @@ const Home = () => {
                                                 sx={{
                                                     display: 'block',
                                                     position: 'relative',
-                                                    p: 2.5,
-                                                    zIndex: 1,
+                                                    p: 2,
                                                 }}
                                             >
                                                 <Box
-                                                    className="link-bg"
                                                     sx={{
                                                         position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        right: 0,
-                                                        bottom: 0,
-                                                        backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.08)}, ${alpha(theme.palette.primary.main, 0.03)})`,
-                                                        opacity: 0.8,
-                                                        transition: 'opacity 0.2s ease-in-out',
-                                                        zIndex: -1,
+                                                        inset: 0,
+                                                        bgcolor: subtle(theme.palette.primary.main, 0.08),
+                                                        opacity: 0.6,
                                                     }}
                                                 />
-                                                <Typography 
-                                                    fontWeight={600} 
+                                                <Typography
+                                                    fontWeight={700}
                                                     gutterBottom
-                                                    sx={{ 
-                                                        color: theme.palette.primary.main,
-                                                        letterSpacing: '-0.01em'
-                                                    }}
+                                                    sx={{ position: 'relative', color: 'primary.main', letterSpacing: '-0.01em' }}
                                                 >
                                                     Find a Game
                                                 </Typography>
-                                                <Typography 
-                                                    variant="body2" 
-                                                    color="text.secondary"
-                                                    sx={{ opacity: 0.8 }}
-                                                >
+                                                <Typography variant="body2" color="text.secondary" sx={{ position: 'relative' }}>
                                                     Join the queue to play
                                                 </Typography>
                                             </Link>
@@ -518,16 +435,12 @@ const Home = () => {
                                         <Box
                                             sx={{
                                                 p: 0,
-                                                borderRadius: 3,
-                                                overflow: 'hidden',
+                                                borderRadius: 2,
+                                                border: `1px solid ${theme.palette.divider}`,
                                                 position: 'relative',
-                                                transition: 'all 0.2s ease-in-out',
-                                                '&:hover': {
-                                                    transform: 'translateY(-2px)',
-                                                    '& .link-bg': {
-                                                        opacity: 1,
-                                                    }
-                                                },
+                                                overflow: 'hidden',
+                                                transition: 'transform 100ms cubic-bezier(0.2,0,0,1)',
+                                                '&:hover': { transform: 'translateY(-2px)' },
                                             }}
                                         >
                                             <Link
@@ -538,39 +451,25 @@ const Home = () => {
                                                 sx={{
                                                     display: 'block',
                                                     position: 'relative',
-                                                    p: 2.5,
-                                                    zIndex: 1,
+                                                    p: 2,
                                                 }}
                                             >
                                                 <Box
-                                                    className="link-bg"
                                                     sx={{
                                                         position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        right: 0,
-                                                        bottom: 0,
-                                                        backgroundImage: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.08)}, ${alpha(theme.palette.primary.main, 0.03)})`,
-                                                        opacity: 0.8,
-                                                        transition: 'opacity 0.2s ease-in-out',
-                                                        zIndex: -1,
+                                                        inset: 0,
+                                                        bgcolor: subtle(theme.palette.primary.main, 0.08),
+                                                        opacity: 0.6,
                                                     }}
                                                 />
-                                                <Typography 
-                                                    fontWeight={600} 
+                                                <Typography
+                                                    fontWeight={700}
                                                     gutterBottom
-                                                    sx={{ 
-                                                        color: theme.palette.primary.main,
-                                                        letterSpacing: '-0.01em'
-                                                    }}
+                                                    sx={{ position: 'relative', color: 'primary.main', letterSpacing: '-0.01em' }}
                                                 >
                                                     Your Profile
                                                 </Typography>
-                                                <Typography 
-                                                    variant="body2" 
-                                                    color="text.secondary"
-                                                    sx={{ opacity: 0.8 }}
-                                                >
+                                                <Typography variant="body2" color="text.secondary" sx={{ position: 'relative' }}>
                                                     View your stats and ratings
                                                 </Typography>
                                             </Link>

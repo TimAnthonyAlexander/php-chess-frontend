@@ -2,6 +2,46 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess, type Square, type Move } from 'chess.js';
 import type { Game, GameMove } from '../../types';
+import { useChessSounds } from '../../hooks/useChessSounds';
+
+type PieceMap = Record<string, string>;
+
+function fenToMap(fen: string): PieceMap {
+    const normalized = fen === 'startpos' ? new Chess().fen() : fen;
+    const board = normalized.split(' ')[0];
+    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const out: PieceMap = {};
+    const rows = board.split('/');
+    for (let r = 0; r < 8; r++) {
+        let fileIdx = 0;
+        for (const ch of rows[r]) {
+            if (/\d/.test(ch)) fileIdx += parseInt(ch, 10);
+            else {
+                const sq = files[fileIdx] + (8 - r);
+                out[sq] = ch;
+                fileIdx++;
+            }
+        }
+    }
+    return out;
+}
+
+function classify(prevFen: string, nextFen: string): 'none' | 'move' | 'capture' | 'castle' {
+    if (prevFen === nextFen) return 'none';
+    const p = fenToMap(prevFen);
+    const n = fenToMap(nextFen);
+    const pKeys = Object.keys(p);
+    const nKeys = Object.keys(n);
+    const pCount = pKeys.length, nCount = nKeys.length;
+    const pWhiteKing = pKeys.find(k => p[k] === 'K');
+    const nWhiteKing = nKeys.find(k => n[k] === 'K');
+    const pBlackKing = pKeys.find(k => p[k] === 'k');
+    const nBlackKing = nKeys.find(k => n[k] === 'k');
+    const fileDist = (a?: string, b?: string) => (a && b ? Math.abs(a.charCodeAt(0) - b.charCodeAt(0)) : 0);
+    if (fileDist(pWhiteKing, nWhiteKing) === 2 || fileDist(pBlackKing, nBlackKing) === 2) return 'castle';
+    if (nCount < pCount) return 'capture';
+    return 'move';
+}
 
 interface ChessBoardProps {
     game: Game;
@@ -29,6 +69,8 @@ function ChessBoard({
         game.fen && game.fen !== 'startpos' ? game.fen : new Chess().fen()
     );
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const prevFenRef = useRef<string | null>(null);
+    const { playMove, playCapture, playCheck, playIllegal, playPromote, playCastle } = useChessSounds();
 
     const isPlayerTurn =
         !isViewOnly && game.to_move_user_id === playerId;
@@ -66,6 +108,27 @@ function ChessBoard({
             setMoveSquares({});
         }
     }, [moves]);
+
+    // Play sounds on FEN transitions and check state
+    useEffect(() => {
+        if (prevFenRef.current == null) {
+            prevFenRef.current = positionFen;
+            return;
+        }
+        const kind = classify(prevFenRef.current, positionFen);
+        if (kind === 'castle') playCastle();
+        else if (kind === 'capture') playCapture();
+        else if (kind !== 'none') playMove();
+
+        let inCheck = false;
+        try {
+            const c = new Chess();
+            if (positionFen !== 'startpos') c.load(positionFen);
+            inCheck = (c as any).isCheck ? c.isCheck() : (c as any).in_check?.();
+        } catch {}
+        if (inCheck) playCheck();
+        prevFenRef.current = positionFen;
+    }, [positionFen, playMove, playCapture, playCheck, playCastle]);
 
     const highlightLegalMoves = useCallback(
         (square: Square) => {
@@ -169,12 +232,19 @@ function ChessBoard({
     const handlePromotion = async (piece: string) => {
         if (!pendingMove) return;
         const { from, to } = pendingMove;
+        playPromote();
         await trySubmitMove(from, to, piece.toLowerCase());
         setShowPromotionDialog(false);
         setOptionSquares({});
         setPendingMove(null);
         setMoveFrom(null);
     };
+
+    const onDrop = useCallback(({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string; }) => {
+        const ok = handlePieceDrop(sourceSquare, targetSquare);
+        if (!ok) playIllegal();
+        return ok;
+    }, [handlePieceDrop, playIllegal]);
 
     useEffect(() => {
         const measure = () => {
@@ -195,7 +265,7 @@ function ChessBoard({
                         position: positionFen,
                         boardOrientation: orientation,
                         onSquareClick: ({ square }) => handleSquareClick(square),
-                        onPieceDrop: ({ sourceSquare, targetSquare }) => handlePieceDrop(sourceSquare, targetSquare!),
+                        onPieceDrop: ({ sourceSquare, targetSquare }) => onDrop({ sourceSquare, targetSquare: targetSquare! }),
                         boardStyle: { width: '100%', height: '100%', },
                         squareStyles: { ...moveSquares, ...optionSquares },
                         allowDrawingArrows: true,

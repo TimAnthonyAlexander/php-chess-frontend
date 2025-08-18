@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { modeService, queueService } from '../services/api';
 import type { TimeControl, QueueStatus } from '../types';
-import { 
-    Typography, 
-    Container, 
-    GridLegacy as Grid, 
-    Card, 
-    CardContent, 
-    CardActionArea, 
-    CircularProgress, 
-    Button, 
-    Box, 
-    Alert, 
+import {
+    Typography,
+    Container,
+    GridLegacy as Grid,
+    Card,
+    CardContent,
+    CardActionArea,
+    CircularProgress,
+    Button,
+    Box,
+    Alert,
     Divider,
     alpha,
     useTheme
@@ -178,10 +178,10 @@ const GameModes = () => {
                         border: `1px solid ${alpha(theme.palette.divider, 0.05)}`
                     }}>
                     <Box display="flex" flexDirection="column" alignItems="center">
-                        <Typography 
-                            variant="h5" 
-                            sx={{ 
-                                mb: 2, 
+                        <Typography
+                            variant="h5"
+                            sx={{
+                                mb: 2,
                                 fontWeight: 500,
                                 background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
                                 WebkitBackgroundClip: 'text',
@@ -191,23 +191,17 @@ const GameModes = () => {
                         >
                             Finding opponent...
                         </Typography>
-                        <Typography 
-                            variant="h3" 
-                            sx={{ 
-                                mb: 3, 
-                                fontWeight: 600, 
+                        <Typography
+                            variant="h3"
+                            sx={{
+                                mb: 3,
+                                fontWeight: 600,
                                 letterSpacing: '-0.025em',
                                 color: theme.palette.primary.main
                             }}
                         >
                             {formatQueueTime(queueTime)}
                         </Typography>
-
-                        {queueStatus?.widening && (
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                Search range: ±{queueStatus.widening.delta} Elo
-                            </Typography>
-                        )}
 
                         <Box sx={{ mb: 4, display: 'flex' }}>
                             <Box sx={{
@@ -220,11 +214,11 @@ const GameModes = () => {
                                 gap: 1.5
                             }}>
                                 {[0, 1, 2].map((i) => (
-                                    <Box 
+                                    <Box
                                         key={i}
-                                        sx={{ 
-                                            width: 10, 
-                                            height: 10, 
+                                        sx={{
+                                            width: 10,
+                                            height: 10,
                                             borderRadius: '50%',
                                             background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
                                             animationDelay: `${i * 0.15}s`,
@@ -237,7 +231,7 @@ const GameModes = () => {
                                                     transform: 'translateY(-6px)'
                                                 }
                                             }
-                                        }} 
+                                        }}
                                     />
                                 ))}
                             </Box>
@@ -282,10 +276,10 @@ const GameModes = () => {
                                     backdropFilter: 'blur(10px)',
                                     border: `1px solid ${alpha(theme.palette.divider, 0.05)}`
                                 }}>
-                                <Typography 
-                                    variant="h5" 
-                                    sx={{ 
-                                        mb: 2, 
+                                <Typography
+                                    variant="h5"
+                                    sx={{
+                                        mb: 2,
                                         textTransform: 'capitalize',
                                         fontWeight: 600,
                                         letterSpacing: '-0.01em',
@@ -304,10 +298,10 @@ const GameModes = () => {
                                             key={tc.id}
                                             sx={{
                                                 borderRadius: 2.5,
-                                                bgcolor: selectedMode === tc.slug 
+                                                bgcolor: selectedMode === tc.slug
                                                     ? alpha(theme.palette.primary.light, 0.08)
                                                     : alpha(theme.palette.background.paper, 0.8),
-                                                border: `1px solid ${selectedMode === tc.slug 
+                                                border: `1px solid ${selectedMode === tc.slug
                                                     ? alpha(theme.palette.primary.main, 0.1)
                                                     : alpha(theme.palette.divider, 0.08)}`,
                                                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -319,17 +313,17 @@ const GameModes = () => {
                                                         ? alpha(theme.palette.primary.light, 0.1)
                                                         : alpha(theme.palette.primary.light, 0.02)
                                                 },
-                                                backgroundImage: selectedMode === tc.slug 
+                                                backgroundImage: selectedMode === tc.slug
                                                     ? `linear-gradient(to right, ${alpha(theme.palette.primary.light, 0.15)}, ${alpha(theme.palette.primary.light, 0.05)})`
                                                     : 'none'
                                             }}
                                         >
-                                            <Box 
+                                            <Box
                                                 onClick={() => setSelectedMode(tc.slug)}
-                                                sx={{ 
+                                                sx={{
                                                     p: 2.5,
-                                                    display: 'flex', 
-                                                    justifyContent: 'space-between', 
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
                                                     alignItems: 'center',
                                                     cursor: 'pointer',
                                                     '&:hover': {
@@ -340,12 +334,12 @@ const GameModes = () => {
                                                 }}
                                             >
                                                 <Box>
-                                                    <Typography 
-                                                        variant="h6" 
-                                                        sx={{ 
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
                                                             fontWeight: selectedMode === tc.slug ? 600 : 500,
-                                                            color: selectedMode === tc.slug 
-                                                                ? theme.palette.primary.main 
+                                                            color: selectedMode === tc.slug
+                                                                ? theme.palette.primary.main
                                                                 : theme.palette.text.primary,
                                                             letterSpacing: '-0.01em',
                                                             mb: 0.5
@@ -353,12 +347,12 @@ const GameModes = () => {
                                                     >
                                                         {tc.name}
                                                     </Typography>
-                                                    <Typography 
-                                                        variant="body2" 
+                                                    <Typography
+                                                        variant="body2"
                                                         className="time-text"
-                                                        sx={{ 
-                                                            color: selectedMode === tc.slug 
-                                                                ? alpha(theme.palette.primary.main, 0.7) 
+                                                        sx={{
+                                                            color: selectedMode === tc.slug
+                                                                ? alpha(theme.palette.primary.main, 0.7)
                                                                 : 'text.secondary',
                                                             transition: 'color 0.2s ease',
                                                             fontWeight: 400
@@ -369,7 +363,7 @@ const GameModes = () => {
                                                 </Box>
 
                                                 {selectedMode === tc.slug && (
-                                                    <Box 
+                                                    <Box
                                                         sx={{
                                                             width: 20,
                                                             height: 20,
@@ -380,14 +374,14 @@ const GameModes = () => {
                                                             bgcolor: alpha(theme.palette.primary.main, 0.1),
                                                         }}
                                                     >
-                                                        <Box 
+                                                        <Box
                                                             sx={{
                                                                 width: 8,
                                                                 height: 8,
                                                                 borderRadius: '50%',
                                                                 background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
                                                                 transition: 'all 0.2s ease-in-out',
-                                                            }} 
+                                                            }}
                                                         />
                                                     </Box>
                                                 )}

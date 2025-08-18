@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess, type Square, type Move } from 'chess.js';
 import type { Game, GameMove } from '../../types';
@@ -18,13 +18,16 @@ function ChessBoard({
     onMove,
     isViewOnly = false,
 }: ChessBoardProps) {
-    const [chess, setChess] = useState(() => new Chess());
+    const chessRef = useRef(new Chess());
     const [orientation, setOrientation] = useState<'white' | 'black'>('white');
-    const [, setMoveFrom] = useState<Square | null>(null);
+    const [moveFrom, setMoveFrom] = useState<Square | null>(null);
     const [showPromotionDialog, setShowPromotionDialog] = useState(false);
     const [moveSquares, setMoveSquares] = useState<Record<string, React.CSSProperties>>({});
     const [optionSquares, setOptionSquares] = useState<Record<string, React.CSSProperties>>({});
     const [pendingMove, setPendingMove] = useState<{ from: Square; to: Square } | null>(null);
+    const [positionFen, setPositionFen] = useState<string>(() =>
+        game.fen && game.fen !== 'startpos' ? game.fen : new Chess().fen()
+    );
 
     const isPlayerTurn =
         !isViewOnly && game.to_move_user_id === playerId;
@@ -35,27 +38,21 @@ function ChessBoard({
     }, [game.white_id, game.black_id, playerId]);
 
     useEffect(() => {
-        // If you ever support non-standard starts, put that FEN here instead of undefined
-        const next = new Chess(undefined);
-
-        for (const m of moves) {
-            try {
-                const ok = next.move({
-                    from: m.from_sq as Square,
-                    to: m.to_sq as Square,
-                    promotion: m.promotion ?? undefined,
-                });
-
-                if (!ok) {
-                    console.warn('Bad move in history at ply', m.ply, m.uci);
-                    break;
-                }
-            } catch (error) {
-                break;
-            }
+        if (moves.length) {
+            const last = moves[moves.length - 1];
+            setPositionFen(last.fen_after);
+        } else {
+            setPositionFen(game.fen && game.fen !== 'startpos' ? game.fen : new Chess().fen());
         }
-        setChess(next);
-    }, [moves]);
+    }, [moves, game.fen]);
+
+    useEffect(() => {
+        try {
+            chessRef.current.load(positionFen);
+        } catch {
+            chessRef.current.reset();
+        }
+    }, [positionFen]);
 
     useEffect(() => {
         if (moves.length) {
@@ -71,84 +68,85 @@ function ChessBoard({
 
     const highlightLegalMoves = useCallback(
         (square: Square) => {
-            const legal = chess.moves({ square, verbose: true as const }) as Move[];
+            const legal = chessRef.current.moves({ square, verbose: true as const }) as Move[];
             if (!legal.length) return;
             const next: Record<string, React.CSSProperties> = {};
             for (const mv of legal) next[mv.to] = { backgroundColor: 'rgba(0, 255, 0, 0.4)' };
             setOptionSquares(next);
         },
-        [chess],
+        [],
     );
 
     const trySubmitMove = useCallback(
-        async (from: Square, to: Square) => {
-            const piece = chess.get(from);
-            if (piece?.type === 'p') {
-                const targetRank = to.charAt(1);
-                if ((piece.color === 'w' && targetRank === '8') || (piece.color === 'b' && targetRank === '1')) {
-                    setPendingMove({ from, to });
-                    setShowPromotionDialog(true);
-                    return;
-                }
-            }
-            await onMove(`${from}${to}`, game.lock_version);
+        async (from: Square, to: Square, promo?: string) => {
+            const test = new Chess(chessRef.current.fen());
+            const ok = test.move({ from, to, promotion: (promo ?? 'q') as any });
+            if (!ok) return false;
+            setPositionFen(test.fen());
+            await onMove(`${from}${to}${promo ? promo.toLowerCase() : ''}`, game.lock_version);
             setOptionSquares({});
             setMoveFrom(null);
+            return true;
         },
-        [chess, game.lock_version, onMove],
+        [game.lock_version, onMove],
     );
 
     const handleSquareClick = useCallback(
         (squareStr: string) => {
             if (isViewOnly || !isPlayerTurn || game.status !== 'active') return;
             const sq = squareStr as Square;
-
-            setMoveFrom(prevFrom => {
-                if (prevFrom === null) {
-                    const hasMoves = (chess.moves({ square: sq, verbose: true as const }) as Move[]).length > 0;
-                    if (hasMoves) {
-                        highlightLegalMoves(sq);
-                        return sq;
-                    }
-                    return null;
+            if (moveFrom === null) {
+                const hasMoves = (chessRef.current.moves({ square: sq, verbose: true as const }) as Move[]).length > 0;
+                if (hasMoves) {
+                    setMoveFrom(sq);
+                    highlightLegalMoves(sq);
                 }
+                return;
+            }
 
-                const from = prevFrom;
-                const to = sq;
-                const legalFrom = chess.moves({ square: from, verbose: true as const }) as Move[];
-                const found = legalFrom.find(m => m.to === to);
+            const from = moveFrom;
+            const to = sq;
+            const legalFrom = chessRef.current.moves({ square: from, verbose: true as const }) as Move[];
+            const found = legalFrom.find(m => m.to === to);
 
-                if (!found) {
-                    const hasNew = (chess.moves({ square: sq, verbose: true as const }) as Move[]).length > 0;
-                    if (hasNew) {
-                        highlightLegalMoves(sq);
-                        return sq;
-                    }
+            if (!found) {
+                const hasNew = (chessRef.current.moves({ square: sq, verbose: true as const }) as Move[]).length > 0;
+                if (hasNew) {
+                    setMoveFrom(sq);
+                    highlightLegalMoves(sq);
+                } else {
+                    setMoveFrom(null);
                     setOptionSquares({});
-                    return null;
                 }
+                return;
+            }
 
-                trySubmitMove(from, to);
-                return null;
-            });
+            const piece = chessRef.current.get(from);
+            const needsPromotion =
+                piece?.type === 'p' && ((piece.color === 'w' && to.charAt(1) === '8') || (piece.color === 'b' && to.charAt(1) === '1'));
+            if (needsPromotion) {
+                setPendingMove({ from, to });
+                return;
+            }
+            void trySubmitMove(from, to);
         },
-        [chess, game.status, highlightLegalMoves, isPlayerTurn, isViewOnly, trySubmitMove],
+        [game.status, highlightLegalMoves, isPlayerTurn, isViewOnly, moveFrom, trySubmitMove],
     );
 
     const handlePieceDrop = useCallback(
-        async (sourceSquareStr: string, targetSquareStr: string) => {
+        (sourceSquareStr: string, targetSquareStr: string) => {
             if (isViewOnly || !isPlayerTurn || game.status !== 'active') return false;
 
             const source = sourceSquareStr as Square;
             const target = targetSquareStr as Square;
 
-            const test = new Chess(chess.fen());
+            const test = new Chess(chessRef.current.fen());
             if (!test.move({ from: source, to: target, promotion: 'q' })) {
                 setOptionSquares({});
                 return false;
             }
 
-            const piece = chess.get(source);
+            const piece = chessRef.current.get(source);
             const needsPromotion =
                 piece?.type === 'p' &&
                 ((piece.color === 'w' && target.charAt(1) === '8') || (piece.color === 'b' && target.charAt(1) === '1'));
@@ -159,39 +157,40 @@ function ChessBoard({
                 return true;
             }
 
-            await onMove(`${source}${target}`, game.lock_version);
+            void trySubmitMove(source, target);
             setOptionSquares({});
             setMoveFrom(null);
             return true;
         },
-        [chess, game.lock_version, game.status, isPlayerTurn, isViewOnly, onMove],
+        [game.status, isPlayerTurn, isViewOnly, trySubmitMove],
     );
 
     const handlePromotion = async (piece: string) => {
         if (!pendingMove) return;
         const { from, to } = pendingMove;
-        await onMove(`${from}${to}${piece.toLowerCase()}`, game.lock_version);
+        await trySubmitMove(from, to, piece.toLowerCase());
         setShowPromotionDialog(false);
         setOptionSquares({});
         setPendingMove(null);
         setMoveFrom(null);
     };
 
-    const size = Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 40 : 600);
+    const size = useMemo(() => Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 40 : 600), []);
 
     return (
         <div className="relative">
             <Chessboard
                 options={{
                     id: `board-${game.id}`,
-                    position: chess.fen(),
+                    position: positionFen,
                     boardOrientation: orientation,
                     onSquareClick: ({ square }) => handleSquareClick(square),
                     onPieceDrop: ({ sourceSquare, targetSquare }) => handlePieceDrop(sourceSquare, targetSquare!),
-                    squareStyles: { ...moveSquares, ...optionSquares },
+                    customSquareStyles: { ...moveSquares, ...optionSquares },
                     allowDrawingArrows: true,
                     clearArrowsOnClick: true,
-                    boardStyle: { width: size, height: size },
+                    animationDuration: 300,
+                    boardWidth: size,
                 }}
             />
 

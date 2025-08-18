@@ -28,6 +28,7 @@ function ChessBoard({
     const [positionFen, setPositionFen] = useState<string>(() =>
         game.fen && game.fen !== 'startpos' ? game.fen : new Chess().fen()
     );
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     const isPlayerTurn =
         !isViewOnly && game.to_move_user_id === playerId;
@@ -175,22 +176,34 @@ function ChessBoard({
         setMoveFrom(null);
     };
 
+    useEffect(() => {
+        const measure = () => {
+            const el = containerRef.current;
+            if (!el) return;
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        return () => window.removeEventListener('resize', measure);
+    }, []);
+
     return (
-        <div className="relative" style={{ width: '100%', maxWidth: 420, aspectRatio: '1 / 1' }}>
-            <Chessboard
-                options={{
-                    id: `board-${game.id}`,
-                    position: positionFen,
-                    boardOrientation: orientation,
-                    onSquareClick: ({ square }) => handleSquareClick(square),
-                    onPieceDrop: ({ sourceSquare, targetSquare }) => handlePieceDrop(sourceSquare, targetSquare!),
-                    boardStyle: { width: '100%', height: '100%' },
-                    squareStyles: { ...moveSquares, ...optionSquares },
-                    allowDrawingArrows: true,
-                    clearArrowsOnClick: true,
-                    animationDurationInMs: 300,
-                }}
-            />
+        <div className="relative" ref={containerRef} style={{ width: '40vw' }}>
+            <div style={{ width: '100%', aspectRatio: '1 / 1' }}>
+                <Chessboard
+                    options={{
+                        id: `board-${game.id}`,
+                        position: positionFen,
+                        boardOrientation: orientation,
+                        onSquareClick: ({ square }) => handleSquareClick(square),
+                        onPieceDrop: ({ sourceSquare, targetSquare }) => handlePieceDrop(sourceSquare, targetSquare!),
+                        boardStyle: { width: '100%', height: '100%', },
+                        squareStyles: { ...moveSquares, ...optionSquares },
+                        allowDrawingArrows: true,
+                        clearArrowsOnClick: true,
+                        animationDurationInMs: 300,
+                    }}
+                />
+            </div>
 
             {showPromotionDialog && pendingMove && (
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-lg rounded-md p-4 z-10">

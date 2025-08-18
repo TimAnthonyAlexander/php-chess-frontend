@@ -424,7 +424,7 @@ const GamePlay = () => {
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: 'center',
+                            alignItems: 'stretch',
                             position: 'relative',
                             '&::before': {
                                 content: '""',

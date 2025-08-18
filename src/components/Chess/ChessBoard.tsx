@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess, type Square, type Move } from 'chess.js';
 import type { Game, GameMove } from '../../types';
@@ -175,10 +175,8 @@ function ChessBoard({
         setMoveFrom(null);
     };
 
-    const size = useMemo(() => Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 40 : 600), []);
-
     return (
-        <div className="relative">
+        <div className="relative" style={{ width: '100%', maxWidth: 420, aspectRatio: '1 / 1' }}>
             <Chessboard
                 options={{
                     id: `board-${game.id}`,
@@ -186,11 +184,11 @@ function ChessBoard({
                     boardOrientation: orientation,
                     onSquareClick: ({ square }) => handleSquareClick(square),
                     onPieceDrop: ({ sourceSquare, targetSquare }) => handlePieceDrop(sourceSquare, targetSquare!),
-                    customSquareStyles: { ...moveSquares, ...optionSquares },
+                    boardStyle: { width: '100%', height: '100%' },
+                    squareStyles: { ...moveSquares, ...optionSquares },
                     allowDrawingArrows: true,
                     clearArrowsOnClick: true,
-                    animationDuration: 300,
-                    boardWidth: size,
+                    animationDurationInMs: 300,
                 }}
             />
 

@@ -41,7 +41,7 @@ A modern, full-featured web client for playing, spectating, and managing chess g
    npm run dev
    ```
 3. **Open your browser:**
-   Visit [http://localhost:3999](http://localhost:3999)
+   Visit [http://localhost:3998](http://localhost:3998)
 
 > **Note:** The frontend expects a backend API running at `http://localhost:4999/api` (see `src/services/api.ts`).
 

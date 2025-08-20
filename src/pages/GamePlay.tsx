@@ -70,6 +70,7 @@ const GamePlay = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [lockVersion, setLockVersion] = useState(0);
+    const [bestMove, setBestMove] = useState<string | null>(null);
 
     // Initial game load
     useEffect(() => {
@@ -177,6 +178,23 @@ const GamePlay = () => {
         } catch (err) {
             console.error('Error resigning game:', err);
         }
+    };
+
+    // Admin: request best move from server
+    const handleBestMove = async () => {
+        if (!game) return;
+        try {
+            const { bestmove } = await gameService.bestMove(gameId);
+            setBestMove(bestmove);
+        } catch (err) {
+            console.error('Error fetching best move:', err);
+        }
+    };
+
+    const handleApplyBestMove = async () => {
+        if (!game || !bestMove) return;
+        await handleMove(bestMove, lockVersion);
+        setBestMove(null);
     };
 
     // Offer draw
@@ -413,6 +431,31 @@ const GamePlay = () => {
                                     onOfferDraw={handleOfferDraw}
                                     onAcceptDraw={handleAcceptDraw}
                                 />
+
+                                {user.is_admin && (
+                                    <Box mt={2} display="flex" flexDirection="column" gap={1.5}>
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={handleBestMove}
+                                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                                        >
+                                            Best Move (Admin)
+                                        </Button>
+                                        {bestMove && (
+                                            <Box display="flex" alignItems="center" justifyContent="space-between">
+                                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                                    Suggested: {bestMove}
+                                                </Typography>
+                                                {(game.to_move_user_id === user.id) && (
+                                                    <Button size="small" variant="outlined" onClick={handleApplyBestMove} sx={{ textTransform: 'none', borderRadius: 2 }}>
+                                                        Apply
+                                                    </Button>
+                                                )}
+                                            </Box>
+                                        )}
+                                    </Box>
+                                )}
                             </SurfaceCard>
                         )}
                     </Box>

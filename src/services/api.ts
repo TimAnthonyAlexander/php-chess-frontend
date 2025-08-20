@@ -114,6 +114,11 @@ export const gameService = {
     acceptDraw: async (gameId: number): Promise<{ finished: boolean, result: string, reason: string }> => {
         const response = await api.post(`/games/${gameId}/acceptDraw`);
         return response.data;
+    },
+
+    bestMove: async (gameId: number): Promise<{ bestmove: string }> => {
+        const response = await api.get(`/games/${gameId}/best-move`);
+        return response.data;
     }
 };
 
